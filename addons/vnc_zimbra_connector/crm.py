@@ -25,3 +25,20 @@ class crm_meeting(osv.osv):
     }
 
 crm_meeting()
+
+def search_read(self, cr, uid, domain, fields=[], context={}):
+    """
+        @param self: The object pointer
+        @param cr: the current row, from the database cursor,
+        @param uid: the current user’s ID for security checks,
+        @param domain: Condition to filter on
+        @param fields: list of fields to read
+        @param context: A standard dictionary for contextual values
+    """
+    ids = self.search(cr, uid, domain, context=context)
+    read_data = []
+    if ids:
+        read_data = self.read(cr, uid, ids, fields=fields, context=context)
+    return read_data
+
+osv.osv.search_read = search_read

@@ -19,3 +19,12 @@ class crm_meeting(osv.osv):
     }
 
 crm_meeting()
+
+def search_read(self, cr, uid, domain, fields=[], context={}):
+    ids = self.search(cr, uid, domain, context=context)
+    read_data = []
+    if ids:
+        read_data = self.read(cr, uid, ids, fields=fields, context=context)
+    return read_data
+
+osv.osv.search_read = search_read

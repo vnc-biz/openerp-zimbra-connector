@@ -25,5 +25,7 @@
         'security/ir.model.access.csv'
     ],
     "active": False,
+    'application': True,
+    'sequence':3,
     "installable": True,
 }

@@ -203,6 +203,11 @@ class zimbra_partner(osv.osv_memory):
             @param vals: Valuse for archiving email
                 [(object_name,object_id),{binary_of_email}]
         """
+        for val in vals:
+            if not isinstance(val, (list,tuple)):
+                continue
+            if val[0] == 'message':
+                val[1] = base64.decodestring(val[1])
         dictcreate = dict(vals)
         ref_ids = str(dictcreate.get('ref_ids')).split(';')
         msg = dictcreate.get('message')

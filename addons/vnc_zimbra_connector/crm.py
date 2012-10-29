@@ -77,6 +77,25 @@ class lead_address_line(osv.osv):
             res['mobile']= address_obj.mobile
         return {'value':res}
 
+    def search_read(self, cr, uid, domain, fields=[], context={}):
+        """
+        @param self: The object pointer
+        @param cr: the current row, from the database cursor,
+        @param uid: the current user’s ID for security checks,
+        @param domain: Condition to filter on
+        @param fields: list of fields to read
+        @param context: A standard dictionary for contextual values
+        """
+        ids = self.search(cr, uid, domain, context=context)
+        read_data = lead_data = []
+        lead_pool = self.pool.get('crm.lead')
+        if ids:
+            read_data = self.read(cr, uid, ids, fields=fields, context=context)
+            lead_ids = [data['lead_id'] for data in read_data]
+            if lead_ids:
+                lead_data = lead_pool.read(cr,uid,lead_ids)
+        return lead_data
+
 lead_address_line()
 
 def search_read(self, cr, uid, domain, fields=[], context={}):

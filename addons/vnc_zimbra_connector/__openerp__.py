@@ -23,7 +23,9 @@
     "demo_xml" : [],
     "update_xml" : [
         'security/ir.model.access.csv',
-        'crm_view.xml'
+        'crm_view.xml',
+        'crm_task/crm_task_view.xml',
+        'crm_task/crm_task_menu.xml',
     ],
     "active": False,
     'application': True,

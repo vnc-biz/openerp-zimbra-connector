@@ -68,7 +68,7 @@ class lead_address_line(osv.osv):
         lead_pool = self.pool.get('crm.lead')
         if ids:
             read_data = self.read(cr, uid, ids, fields=fields, context=context)
-            lead_ids = [data['lead_id'] for data in read_data]
+            lead_ids = [data['lead_id'][0] for data in read_data if data['lead_id']]
             if lead_ids:
                 lead_data = lead_pool.read(cr,uid,lead_ids)
         return lead_data

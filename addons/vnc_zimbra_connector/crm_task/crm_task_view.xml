@@ -1,0 +1,151 @@
+<?xml version="1.0"?>
+<openerp>
+	<data>
+		<!-- CRM tasks Categories Form View -->
+		<record id="crm_task_categ_action" model="ir.actions.act_window">
+			<field name="name">Task Categories</field>
+			<field name="res_model">crm.case.categ</field>
+			<field name="view_type">form</field>
+			<field name="view_id" ref="crm.crm_case_categ_tree-view" />
+			<field name="domain">[('object_id.model', '=', 'crm.task')]</field>
+			<field name="context">{'object_id':'crm.task'}</field>
+			<field name="help">Create different task categories to better organize and classify your tasks.</field>
+		</record>
+		<menuitem action="crm_task_categ_action" groups="base.group_extended" id="menu_crm_case_task-act" parent="base.menu_calendar_configuration" sequence="1" />
+		<!-- CRM tasks Form View -->
+		<record model="ir.ui.view" id="crm_case_form_view_meet">
+			<field name="name">CRM - Task Form</field>
+			<field name="model">crm.task</field>
+			<field name="type">form</field>
+			<field name="priority">2</field>
+			<field name="arch" type="xml">
+				<form string="Task">
+					<group col="6" colspan="4">
+						<field name="name" select="1" string="Summary" />
+						<field name="task_type" invisible="1" />
+						<field name="categ_id" widget="selection" string="Task Type" groups="base.group_extended" domain="[('object_id.model', '=', 'crm.task')]" />
+						<newline />
+						<field name="date" string="Start Date" on_change="onchange_dates(date,duration,False,allday)" />
+						<field name="duration" widget="float_time" invisible="1" on_change="onchange_dates(date,duration,False,allday)" />
+						<field name="date_deadline" string="End Date" on_change="onchange_dates(date,False,date_deadline)" />
+						<field name="priority" />
+						<field name="allday" invisible="1" />
+					</group>
+					<notebook colspan="4">
+						<page string="Task">
+							<group col="6" colspan="4">
+								<group col="2" colspan="2">
+									<separator colspan="2" string="Assignment" />
+									<field name="user_id" />
+									<field name="section_id" widget="selection" groups="base.group_extended" />
+								</group>
+								<group col="2" colspan="2">
+									<separator colspan="2" string="Contacts" />
+									<field name="partner_id" string="Partner" on_change="onchange_partner_id(partner_id)" />
+									<field name="partner_address_id" string="Contact" on_change="onchange_partner_address_id(partner_address_id, email_from)" />
+									<field name="phone" />
+									<field name="mobile" />
+									<field name="email_from" />
+									<field name="opportunity_id" />
+								</group>
+							</group>
+							<separator string="Description" colspan="4" />
+							<field name="description" nolabel="1" colspan="4" />
+							<separator colspan="4" />
+							<group col="8" colspan="4" groups="base.group_extended">
+								<field name="state" />
+								<button name="case_close" string="Done" states="open" type="object" icon="gtk-jump-to" />
+								<button name="case_reset" string="Reset to Unconfirmed" states="open,done" type="object" icon="gtk-convert" />
+								<button name="case_open" string="Confirm" states="draft" type="object" icon="gtk-go-forward" />
+							</group>
+						</page>
+					</notebook>
+				</form>
+			</field>
+		</record>
+		<!-- CRM task Tree View -->
+		<record model="ir.ui.view" id="crm_case_tree_view_meet">
+			<field name="name">CRM - tasks Tree</field>
+			<field name="model">crm.task</field>
+			<field name="type">tree</field>
+			<field name="arch" type="xml">
+				<tree string="Tasks" colors="red:date_deadline and (date_deadline &lt;= current_datetime and state=='open')">
+					<field name="name" string="Subject" />
+					<field name="date" string="Start Date" />
+					<field name="duration" invisible="1" />
+					<field name="partner_address_id" />
+					<field name="phone" />
+					<field name="mobile" />
+					<field name="location" />
+					<field name="categ_id" string="task Type" />
+					<field name="state" />
+					<field name="user_id" invisible="1" />
+					<field name="date_deadline" invisible="1" />
+					<button name="case_reset" string="Reset to Unconfirmed" states="open,done" type="object" icon="gtk-convert" />
+					<button name="case_open" string="Confirm" states="draft" type="object" icon="gtk-go-forward" />
+					<button name="case_close" string="Done" states="open" type="object" icon="gtk-jump-to" />
+				</tree>
+			</field>
+		</record>
+		<!-- CRM task Calendar -->
+		<record model="ir.ui.view" id="crm_case_calendar_view_meet">
+			<field name="name">CRM - tasks Calendar</field>
+			<field name="model">crm.task</field>
+			<field name="type">calendar</field>
+			<field name="priority" eval="2" />
+			<field name="arch" type="xml">
+				<calendar string="Tasks" date_start="date" color="user_id" date_stop="date_deadline">
+					<field name="name" />
+					<field name="partner_id" />
+					<field name="section_id" widget="selection" />
+				</calendar>
+			</field>
+		</record>
+		<!-- CRM task Gantt -->
+		<record id="crm_case_gantt_view_meet" model="ir.ui.view">
+			<field name="name">CRM - tasks Gantt</field>
+			<field name="model">crm.task</field>
+			<field name="type">gantt</field>
+			<field name="arch" type="xml">
+				<gantt color="user_id" date_delay="duration" date_start="date" string="Tasks">
+					<level object="crm.task" link="id" domain="[]">
+						<field name="name" />
+						<field name="partner_id" />
+					</level>
+				</gantt>
+			</field>
+		</record>
+		<!-- CRM task Search View -->
+		<record id="view_crm_case_tasks_filter" model="ir.ui.view">
+			<field name="name">CRM - tasks Search</field>
+			<field name="model">crm.task</field>
+			<field name="type">search</field>
+			<field name="arch" type="xml">
+				<search string="Search Tasks">
+					<group col="12" colspan="4">
+						<filter icon="terp-check" name="current" string="Current" domain="[('state','in',('draft', 'open'))]" groups="base.group_extended" help="Current tasks" />
+						<separator orientation="vertical" />
+						<field name="name" select="1" string="Subject" />
+						<field name="categ_id" select="1" string="task Type" widget="selection" domain="[('object_id.model', '=', 'crm.task')]" />
+						<separator orientation="vertical" />
+						<field name="partner_id" select="1" />
+						<field name="section_id" select="1" widget="selection">
+							<filter icon="terp-personal+" groups="base.group_extended" domain="['|', ('section_id', '=', context.get('section_id')), '|', ('section_id.user_id','=',uid), ('section_id.member_ids', 'in', [uid])]" help="My Sales Team(s)" />
+						</field>
+						<field name="user_id" select="1" />
+					</group>
+					<newline />
+					<group expand="0" string="Group By...">
+						<filter string="Responsible" icon="terp-personal" domain="[]" context="{'group_by':'user_id'}" />
+						<filter string="Partner" icon="terp-partner" domain="[]" context="{'group_by':'partner_id'}" />
+						<separator orientation="vertical" />
+						<filter string="Type" help="task Type" icon="terp-stock_symbol-selection" domain="[]" context="{'group_by':'categ_id'}" />
+						<filter string="State" icon="terp-stock_effects-object-colorize" domain="[]" context="{'group_by':'state'}" />
+						<separator orientation="vertical" />
+						<filter string="Date" icon="terp-go-month" help="task date" domain="[]" context="{'group_by':'date'}" />
+					</group>
+				</search>
+			</field>
+		</record>
+	</data>
+</openerp>

@@ -84,6 +84,10 @@ class email_server_tools(osv.osv_memory):
         return self.history(cr, uid, model, res_id, msg, att_ids)
 
     def parse_message(self, message):
+        """
+            @param self: The object pointer
+            @param message: Email Message for parsing
+        """
         #TOCHECK: put this function in mailgateway module
         if isinstance(message, unicode):
             message = message.encode('utf-8')
@@ -177,6 +181,12 @@ class zimbra_partner(osv.osv_memory):
     _description="Zimbra Plugin Tools"
 
     def create_contact(self,cr,user,vals):
+        """
+            @param self: The object pointer
+            @param cr: the current row, from the database cursor,
+            @param uid: the current user’s ID for security checks,
+            @param vals: Value
+        """
         dictcreate = dict(vals)
         # Set False value if 'undefined' for record. Id User does not spicify the values, Thunerbird set 'undefined' by default for new contact.
         for key in dictcreate:
@@ -188,6 +198,14 @@ class zimbra_partner(osv.osv_memory):
         return create_id
 
     def history_message(self, cr, uid, vals):
+        """
+            @param self: The object pointer
+            @param cr: the current row, from the database cursor,
+            @param uid: the current user’s ID for security checks,
+            @param vals: Valuse for archiving email
+                [(object_name,object_id),{binary_of_email}] 
+            
+        """
         for val in vals:
             if not isinstance(val, (list,tuple)):
                 continue
@@ -244,12 +262,25 @@ class zimbra_partner(osv.osv_memory):
         return len(res_ids)
 
     def process_email(self, cr, uid, vals):
+        """
+            @param self: The object pointer
+            @param cr: the current row, from the database cursor,
+            @param uid: the current user’s ID for security checks,
+            @param vals: Get Values
+        """
         dictcreate = dict(vals)
         model = str(dictcreate.get('model'))
         message = dictcreate.get('message')
         return self.pool.get('email.server.tools').process_email(cr, uid, model, message, attach=True, context=None)
 
     def search_message(self, cr, uid, message, context=None):
+        """
+            @param self: The object pointer
+            @param cr: the current row, from the database cursor,
+            @param uid: the current user’s ID for security checks,
+            @param message: ID of message to search for
+            @param context: A standard dictionary for contextual values
+        """
         #@param message: string of mail which is read from EML File
         #@return model,res_id
         references = []
@@ -280,6 +311,12 @@ class zimbra_partner(osv.osv_memory):
         return (model,res_id)
 
     def search_contact(self, cr, user, email):
+        """
+            @param self: The object pointer
+            @param cr: the current row, from the database cursor,
+            @param uid: the current user’s ID for security checks,
+            @param email: Email address to search for
+        """
         address_pool = self.pool.get('res.partner.address')
         address_ids = address_pool.search(cr, user, [('email','=',email)])
         res = {}
@@ -310,6 +347,12 @@ class zimbra_partner(osv.osv_memory):
         return res.items()
 
     def update_contact(self, cr, user, vals):
+        """
+            @param self: The object pointer
+            @param cr: the current row, from the database cursor,
+            @param uid: the current user’s ID for security checks,
+            @param vals: Get Values
+        """
         dictcreate = dict(vals)
         res_id = dictcreate.get('res_id',False)
         result = {}
@@ -339,6 +382,12 @@ class zimbra_partner(osv.osv_memory):
         return True
 
     def create_partner(self,cr,user,vals):
+        """
+            @param self: The object pointer
+            @param cr: the current row, from the database cursor,
+            @param uid: the current user’s ID for security checks,
+            @param vals: Get Values
+        """
         dictcreate = dict(vals)
         partner_obj = self.pool.get('res.partner')
         search_id =  partner_obj.search(cr, user,[('name','=',dictcreate['name'])])
@@ -348,11 +397,23 @@ class zimbra_partner(osv.osv_memory):
         return create_id
 
     def search_document(self,cr,user,vals):
+        """
+            @param self: The object pointer
+            @param cr: the current row, from the database cursor,
+            @param uid: the current user’s ID for security checks,
+            @param vals: Get Values
+        """
         dictcreate = dict(vals)
         search_id = self.pool.get('ir.model').search(cr, user,[('model','=',dictcreate['model'])])
         return (search_id and search_id[0]) or 0
 
     def search_checkbox(self,cr,user,vals):
+        """
+            @param self: The object pointer
+            @param cr: the current row, from the database cursor,
+            @param uid: the current user’s ID for security checks,
+            @param vals: Get Values
+        """
         if vals[0]:
             value = vals[0][0]
         if vals[1]:
@@ -385,6 +446,12 @@ class zimbra_partner(osv.osv_memory):
         return name_get
 
     def list_alldocument(self,cr,user,vals):
+        """
+            @param self: The object pointer
+            @param cr: the current row, from the database cursor,
+            @param uid: the current user’s ID for security checks,
+            @param vals: Get Values
+        """
         obj_list= [('crm.lead','CRM Lead'),('project.issue','Project Issue'), ('hr.applicant','HR Applicant')]
         object=[]
         model_obj = self.pool.get('ir.model')
@@ -394,6 +461,12 @@ class zimbra_partner(osv.osv_memory):
         return object
 
     def list_allcountry(self,cr,user,vals):
+        """
+            @param self: The object pointer
+            @param cr: the current row, from the database cursor,
+            @param uid: the current user’s ID for security checks,
+            @param vals: Get Values
+        """
         country_list = []
         cr.execute("SELECT id, name from res_country order by name")
         country_list = cr.fetchall()
@@ -401,11 +474,23 @@ class zimbra_partner(osv.osv_memory):
 
 
     def list_allstate(self,cr,user,vals):
-         cr.execute("select id, name  from res_country_state  where country_id = %s order by name",(vals,) )
-         state_country_list = cr.fetchall()
-         return state_country_list
+        """
+            @param self: The object pointer
+            @param cr: the current row, from the database cursor,
+            @param uid: the current user’s ID for security checks,
+            @param vals: Get Values
+        """
+        cr.execute("select id, name  from res_country_state  where country_id = %s order by name",(vals,) )
+        state_country_list = cr.fetchall()
+        return state_country_list
 
     def search_document_attachment(self,cr,user,vals):
+        """
+            @param self: The object pointer
+            @param cr: the current row, from the database cursor,
+            @param uid: the current user’s ID for security checks,
+            @param vals: Get Values
+        """
         model_obj = self.pool.get('ir.model')
         object=''
         for obj in vals[0][1].split(','):
@@ -416,6 +501,12 @@ class zimbra_partner(osv.osv_memory):
         return object
 
     def meeting_push(self,cr,uid,vals):
+        """
+            @param self: The object pointer
+            @param cr: the current row, from the database cursor,
+            @param uid: the current user’s ID for security checks,
+            @param vals: Get Values
+        """
         vals_dict = dict(vals)
         context = {}
         cal_pool = self.pool.get('crm.meeting')

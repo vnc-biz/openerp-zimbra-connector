@@ -17,6 +17,12 @@ class crm_meeting(osv.osv):
     _inherit = 'crm.meeting'
 
     def _tz_get(self, cr, uid, context=None):
+        """
+        @param self: The object pointer
+        @param cr: the current row, from the database cursor,
+        @param uid: the current user’s ID for security checks,
+        @param context: A standard dictionary for contextual values
+        """
         return [(x, x) for x in pytz.all_timezones]
 
     _columns = {
@@ -52,6 +58,14 @@ class lead_address_line(osv.osv):
                 }
 
     def onchange_partner_address(self,cr,uid,ids,partner_address_id,context=None):
+        """
+        @param self: The object pointer
+        @param cr: the current row, from the database cursor,
+        @param uid: the current user’s ID for security checks,
+        @param ids: list of object ids,
+        @param partner_address_id: specific partner id,
+        @param context: A standard dictionary for contextual values
+        """
         res={}
         if partner_address_id:
             address_pool = self.pool.get('res.partner.address')
@@ -63,6 +77,14 @@ class lead_address_line(osv.osv):
         return {'value':res}
 
     def search_read(self, cr, uid, domain, fields=[], context={}):
+        """
+        @param self: The object pointer
+        @param cr: the current row, from the database cursor,
+        @param uid: the current user’s ID for security checks,
+        @param domain: Condition to filter on
+        @param fields: list of fields to read
+        @param context: A standard dictionary for contextual values
+        """
         ids = self.search(cr, uid, domain, context=context)
         read_data = lead_data = []
         lead_pool = self.pool.get('crm.lead')
@@ -76,6 +98,14 @@ class lead_address_line(osv.osv):
 lead_address_line()
 
 def search_read(self, cr, uid, domain, fields=[], context={}):
+    """
+        @param self: The object pointer
+        @param cr: the current row, from the database cursor,
+        @param uid: the current user’s ID for security checks,
+        @param domain: Condition to filter on
+        @param fields: list of fields to read
+        @param context: A standard dictionary for contextual values
+    """
     ids = self.search(cr, uid, domain, context=context)
     read_data = []
     if ids:

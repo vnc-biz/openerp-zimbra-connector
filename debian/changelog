@@ -1,0 +1,5 @@
+openerp-vnc-zimbra-connector (1.0.1-precise0) precise; urgency=low
+
+  * Ubuntu packaging
+
+ -- Enrico Weigelt, metux IT service <weigelt@metux.de>  Wed, 05 Nov 2012 23:16:00 +0200

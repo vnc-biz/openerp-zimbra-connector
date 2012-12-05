@@ -1,0 +1,23 @@
+Source: openerp-vnc-zimbra-connector
+Section: net
+Priority: optional
+Maintainer: Enrico Weigelt, metux ITS <weigelt@metux.de>
+Build-Depends: debhelper (>= 7.0.50~), python, rsync
+Standards-Version: 3.9.1
+
+
+Package: openerp-addons-vnc-zimbra-connector
+Section: net
+Architecture: all
+Depends:  openerp-addons-base,
+  openerp-addons-crm-caldav,
+  ${misc:Depends}
+Description: OpenERP module: vnc_zimbra_connector
+  This module is required for the zimbra openerp plug-in to work
+  properly.
+  The Plugin allows you archive email and its attachments to the selected
+  OpenERP objects. You can select a partner, a task, a project, an analytical
+  account,or any other object and attach selected mail as eml file in
+  attachment of selected record. You can create Documents for crm Lead,
+  HR Applicant and project issue from selected mails.
+

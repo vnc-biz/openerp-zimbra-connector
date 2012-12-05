@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 {
     "name" : "Zimbra Interface",
-    "version" : "1.0",
+    "version" : "1.0.1",
     "author" : "VNC",
     "website" : "http://www.vnc.biz/",
     "depends" : [

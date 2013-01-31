@@ -8,10 +8,19 @@
 			<field name="type">form</field>
 			<field name="inherit_id" ref="crm.crm_case_form_view_oppor" />
 			<field name="arch" type="xml">
-				<separator string="Details" position="before">
+				<notebook colspan="4" position="before">
 					<separator string="Partner All Contacts" />
-					<field name="lead_add_line" colspan="4" nolabel="1" />
-				</separator>
+					<field name="lead_add_line" nolabel="1" context="{'default_partner_address_id': partner_id or False}">
+						<tree string="Address" editable="top">
+							<field name="partner_address_id" />
+							<field name="phone" />
+							<field name="fax" />
+							<field name="email" />
+							<field name="mobile" />
+							<field name="responsibility" />
+						</tree>
+					</field>
+				</notebook>
 			</field>
 		</record>
 		<record id="view_lead_address_line_tree" model="ir.ui.view">

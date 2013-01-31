@@ -4,7 +4,7 @@ import pytz
 class partner_responsibility(osv.osv):
     _name='partner.responsibility'
     _columns={
-              'name':fields.char('Name',size=256),
+              'name':fields.char('Name',size=256, required=True),
               'description':fields.char('Description',size=256),
               }
 
@@ -20,7 +20,7 @@ class crm_meeting(osv.osv):
         """
         @param self: The object pointer
         @param cr: the current row, from the database cursor,
-        @param uid: the current user’s ID for security checks,
+        @param uid: the current user ID for security checks,
         @param context: A standard dictionary for contextual values
         """
         return [(x, x) for x in pytz.all_timezones]
@@ -30,7 +30,7 @@ class crm_meeting(osv.osv):
     }
 
     _defaults = {
-        'vtimezone': lambda s, cr, uid, c: s.pool.get('res.users').browse(cr, uid, uid, context=c).context_tz,
+        'vtimezone': lambda s, cr, uid, c: s.pool.get('res.users').browse(cr, uid, uid, context=c).tz,
     }
 
 crm_meeting()
@@ -50,7 +50,7 @@ class lead_address_line(osv.osv):
     _rec_name='partner_address_id'
     _columns = {
                 'lead_id':fields.many2one("crm.lead",'Lead'),
-                'partner_address_id':fields.many2one('res.partner.address', 'Contact Adress'),
+                'partner_address_id':fields.many2one('res.partner', 'Contact Adress'),
                 'phone': fields.char('Phone', size=32),
                 'fax': fields.char('Fax', size=32),
                 'email': fields.char('E-mail', size=32),
@@ -62,14 +62,14 @@ class lead_address_line(osv.osv):
         """
         @param self: The object pointer
         @param cr: the current row, from the database cursor,
-        @param uid: the current user’s ID for security checks,
+        @param uid: the current user ID for security checks,
         @param ids: list of object ids,
         @param partner_address_id: specific partner id,
         @param context: A standard dictionary for contextual values
         """
         res={}
         if partner_address_id:
-            address_pool = self.pool.get('res.partner.address')
+            address_pool = self.pool.get('res.partner')
             address_obj = address_pool.browse(cr,uid,partner_address_id,context=context)
             res['phone']=address_obj.phone
             res['fax']= address_obj.fax
@@ -81,7 +81,7 @@ class lead_address_line(osv.osv):
         """
         @param self: The object pointer
         @param cr: the current row, from the database cursor,
-        @param uid: the current user’s ID for security checks,
+        @param uid: the current user ID for security checks,
         @param domain: Condition to filter on
         @param fields: list of fields to read
         @param context: A standard dictionary for contextual values
@@ -102,7 +102,7 @@ def search_read(self, cr, uid, domain, fields=[], context={}):
     """
         @param self: The object pointer
         @param cr: the current row, from the database cursor,
-        @param uid: the current user’s ID for security checks,
+        @param uid: the current user ID for security checks,
         @param domain: Condition to filter on
         @param fields: list of fields to read
         @param context: A standard dictionary for contextual values

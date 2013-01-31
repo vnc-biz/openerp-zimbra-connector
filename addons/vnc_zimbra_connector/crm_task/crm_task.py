@@ -1,4 +1,5 @@
 from base_calendar import base_calendar
+from openerp.addons.base_status.base_state import base_state
 from osv import fields, osv
 from tools.translate import _
 import logging
@@ -6,7 +7,7 @@ from crm import crm
 from datetime import datetime, timedelta, date
 import time
 
-class crm_task(crm.crm_case,osv.osv):
+class crm_task(base_state,osv.osv):
     """ CRM task Cases """
 
     _name = 'crm.task'
@@ -23,7 +24,7 @@ class crm_task(crm.crm_case,osv.osv):
 
         res = super(crm_task,self).default_get( cr, uid, fields, context=context)
         if res and res.has_key('user_id'):
-            res['section_id'] = self.pool.get('res.users').browse(cr, uid, res['user_id']).context_section_id.id
+            res['section_id'] = self.pool.get('res.users').browse(cr, uid, res['user_id']).section_id.id
         else:
             res['section_id'] = self.pool.get('crm.case.section').search(cr, uid, [('name','=','Sales Department')])[0]
 
@@ -36,8 +37,8 @@ class crm_task(crm.crm_case,osv.osv):
             context['default_partner_id'] = res['partner_id']
 
         if context and context.get('default_partner_address_id',False):
-            read_data = self.pool.get('res.partner.address').read(cr, uid, context.get('default_partner_address_id'))
-            f_name = self.pool.get('res.partner.address').read(cr, uid, context.get('default_partner_address_id'), ['name'])
+            read_data = self.pool.get('res.partner').read(cr, uid, context.get('default_partner_address_id'))
+            f_name = self.pool.get('res.partner').read(cr, uid, context.get('default_partner_address_id'), ['name'])
             res['first_name'] = f_name['name']
             res['partner_id'] = read_data['partner_id'] and read_data['partner_id'][0] or False
             context['default_partner_id'] = res['partner_id']
@@ -48,7 +49,7 @@ class crm_task(crm.crm_case,osv.osv):
             addr = self.pool.get('res.partner').address_get(cr, uid, [int(context.get("default_partner_id"))], ['contact','default'])
             res['partner_address_id'] = addr['contact']
             if res.get('partner_address_id',False) and 'first_name' not in res:
-                f_name = self.pool.get('res.partner.address').read(cr, uid, res.get('partner_address_id'), ['name'])
+                f_name = self.pool.get('res.partner').read(cr, uid, res.get('partner_address_id'), ['name'])
                 res['first_name'] = f_name['name']
 
         return res
@@ -68,7 +69,7 @@ class crm_task(crm.crm_case,osv.osv):
         'name': fields.char('Summary', size=124),
         'partner_id': fields.many2one('res.partner', 'Partner'),
         'company_id': fields.many2one('res.company', 'Company'),
-        'partner_address_id': fields.many2one('res.partner.address', 'Partner Contact', domain="[('partner_id','=',partner_id)]"),
+        'partner_address_id': fields.many2one('res.partner', 'Partner Contact'),
         'phone':fields.related('partner_address_id','phone',type="char", size=64, string="Phone"),
         'mobile':fields.related('partner_address_id','mobile',type="char", size=64, string="Mobile"),
         'description':fields.text('Description'),
@@ -90,10 +91,11 @@ class crm_task(crm.crm_case,osv.osv):
                                       ('medium','Medium'),
                                       ('low','Low') ], 'Priority'),
         'message_ids': fields.one2many('mail.message', 'res_id', 'Messages', domain=[('model','=',_name)]),
-        'state': fields.selection([('open', 'Confirmed'),
-                                     ('draft', 'Unconfirmed'),
-                                     ('cancel', 'Cancelled'),
-                                     ('done', 'Done')], 'State', \
+        'state': fields.selection([
+                                   ('draft', 'Unconfirmed'),
+                                   ('open', 'Confirmed'),
+                                   ('done', 'Done'),
+                                   ('cancel', 'Cancelled'),], 'State', \
                                      size=16, readonly=True),
         'first_name':fields.char('First Name',size=256),
         'last_name':fields.char('Last Name',size=256),
@@ -191,7 +193,6 @@ class crm_task(crm.crm_case,osv.osv):
                     data['user_id'] = uid
                 self.write(cr, uid, case.id, data)
 
-            self._action(cr, uid, cases, 'open')
         return True
 
     def case_close(self, cr, uid, ids, *args):
@@ -207,7 +208,6 @@ class crm_task(crm.crm_case,osv.osv):
             if not case.user_id:
                 data['user_id'] = uid
             self.write(cr, uid, case.id, data)
-        self._action(cr, uid, cases, 'done')
         return True
 
     def case_reset(self, cr, uid, ids, *args):
@@ -217,7 +217,6 @@ class crm_task(crm.crm_case,osv.osv):
         cases = self.browse(cr, uid, ids)
         cases[0].state # to fill the browse record cache
         self.write(cr, uid, ids, {'state': 'draft', 'active': True})
-        self._action(cr, uid, cases, 'draft')
         return True
 
 crm_task()

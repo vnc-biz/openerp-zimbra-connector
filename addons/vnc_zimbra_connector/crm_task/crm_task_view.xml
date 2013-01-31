@@ -11,7 +11,7 @@
 			<field name="context">{'object_id':'crm.task'}</field>
 			<field name="help">Create different task categories to better organize and classify your tasks.</field>
 		</record>
-		<menuitem action="crm_task_categ_action" groups="base.group_extended" id="menu_crm_case_task-act" parent="base.menu_calendar_configuration" sequence="1" />
+		<menuitem action="crm_task_categ_action" groups="base.group_user" id="menu_crm_case_task-act" parent="base.menu_calendar_configuration" sequence="1" />
 		<!-- CRM tasks Form View -->
 		<record model="ir.ui.view" id="crm_case_form_view_meet">
 			<field name="name">CRM - Task Form</field>
@@ -19,47 +19,55 @@
 			<field name="type">form</field>
 			<field name="priority">2</field>
 			<field name="arch" type="xml">
-				<form string="Task">
-					<group col="6" colspan="4">
-						<field name="name" select="1" string="Summary" />
-						<field name="task_type" invisible="1" />
-						<field name="categ_id" widget="selection" string="Task Type" groups="base.group_extended" domain="[('object_id.model', '=', 'crm.task')]" />
-						<newline />
-						<field name="date" string="Start Date" on_change="onchange_dates(date,duration,False,allday)" />
-						<field name="duration" widget="float_time" invisible="1" on_change="onchange_dates(date,duration,False,allday)" />
-						<field name="date_deadline" string="End Date" on_change="onchange_dates(date,False,date_deadline)" />
-						<field name="priority" />
-						<field name="allday" invisible="1" />
+				<form string="Task" version="7.0">
+				<header>
+					<button name="case_close" string="Done" states="open" type="object" icon="gtk-jump-to" />
+					<button name="case_reset" string="Reset to Unconfirmed" states="open,done" type="object" icon="gtk-convert" />
+					<button name="case_open" string="Confirm" states="draft" type="object" icon="gtk-go-forward" />
+					<field name="state" widget='statusbar'/>
+				</header>
+				<sheet>
+					<group col="2">
+						<group>
+							<field name="name" select="1" string="Summary" />
+							<field name="categ_id" widget="selection" string="Task Type" groups="base.group_user" domain="[('object_id.model', '=', 'crm.task')]" />
+							<field name="priority" />
+						</group>
+						<group>
+							<field name="allday" invisible="1" />
+							<field name="date" string="Start Date" on_change="onchange_dates(date,duration,False,allday)" />
+							<field name="duration" widget="float_time" invisible="1" on_change="onchange_dates(date,duration,False,allday)" />
+							<field name="date_deadline" string="End Date" on_change="onchange_dates(date,False,date_deadline)" />
+							<field name="task_type" invisible="1" />
+						</group>
 					</group>
-					<notebook colspan="4">
+					<notebook>
 						<page string="Task">
-							<group col="6" colspan="4">
-								<group col="2" colspan="2">
-									<separator colspan="2" string="Assignment" />
-									<field name="user_id" />
-									<field name="section_id" widget="selection" groups="base.group_extended" />
-								</group>
-								<group col="2" colspan="2">
-									<separator colspan="2" string="Contacts" />
+							<group col="2">
+								<group>
+									<separator string="Contacts" />
+									<newline />
 									<field name="partner_id" string="Partner" on_change="onchange_partner_id(partner_id)" />
 									<field name="partner_address_id" string="Contact" on_change="onchange_partner_address_id(partner_address_id, email_from)" />
 									<field name="phone" />
 									<field name="mobile" />
 									<field name="email_from" />
+								</group>
+								<group>
+									<separator string="Assignment" />
+									<newline />
+									<field name="user_id" />
+									<field name="section_id" widget="selection" groups="base.group_user" />
 									<field name="opportunity_id" />
 								</group>
 							</group>
-							<separator string="Description" colspan="4" />
-							<field name="description" nolabel="1" colspan="4" />
-							<separator colspan="4" />
-							<group col="8" colspan="4" groups="base.group_extended">
-								<field name="state" />
-								<button name="case_close" string="Done" states="open" type="object" icon="gtk-jump-to" />
-								<button name="case_reset" string="Reset to Unconfirmed" states="open,done" type="object" icon="gtk-convert" />
-								<button name="case_open" string="Confirm" states="draft" type="object" icon="gtk-go-forward" />
-							</group>
 						</page>
 					</notebook>
+					<group>
+						<separator string="Description" colspan="4" />
+						<field name="description" nolabel="1" colspan="4" />
+					</group>
+				</sheet>
 				</form>
 			</field>
 		</record>
@@ -69,7 +77,7 @@
 			<field name="model">crm.task</field>
 			<field name="type">tree</field>
 			<field name="arch" type="xml">
-				<tree string="Tasks" colors="red:date_deadline and (date_deadline &lt;= current_datetime and state=='open')">
+				<tree string="Tasks" colors="red:state=='open'">
 					<field name="name" string="Subject" />
 					<field name="date" string="Start Date" />
 					<field name="duration" invisible="1" />
@@ -123,14 +131,14 @@
 			<field name="arch" type="xml">
 				<search string="Search Tasks">
 					<group col="12" colspan="4">
-						<filter icon="terp-check" name="current" string="Current" domain="[('state','in',('draft', 'open'))]" groups="base.group_extended" help="Current tasks" />
+						<filter icon="terp-check" name="current" string="Current" domain="[('state','in',('draft', 'open'))]" groups="base.group_user" help="Current tasks" />
 						<separator orientation="vertical" />
 						<field name="name" select="1" string="Subject" />
 						<field name="categ_id" select="1" string="task Type" widget="selection" domain="[('object_id.model', '=', 'crm.task')]" />
 						<separator orientation="vertical" />
 						<field name="partner_id" select="1" />
 						<field name="section_id" select="1" widget="selection">
-							<filter icon="terp-personal+" groups="base.group_extended" domain="['|', ('section_id', '=', context.get('section_id')), '|', ('section_id.user_id','=',uid), ('section_id.member_ids', 'in', [uid])]" help="My Sales Team(s)" />
+							<filter icon="terp-personal+" groups="base.group_user" domain="['|', ('section_id', '=', context.get('section_id')), '|', ('section_id.user_id','=',uid), ('section_id.member_ids', 'in', [uid])]" help="My Sales Team(s)" />
 						</field>
 						<field name="user_id" select="1" />
 					</group>

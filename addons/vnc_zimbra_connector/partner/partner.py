@@ -6,7 +6,6 @@ import binascii
 import dateutil.parser
 import vobject
 from base_calendar import base_calendar
-from caldav import calendar
 from datetime import datetime
 import re
 import pooler
@@ -47,7 +46,7 @@ class email_server_tools(osv.osv_memory):
                 'name': msg.get('subject', 'No subject'),
                 'subject': msg.get('subject', 'No subject'),
                 'date': msg.get('date'),
-                'body_text': msg.get('body', msg.get('from')),
+                'body': msg.get('body', msg.get('from')),
                 'history': True,
                 'partner_id': partner_id,
                 'model': model,
@@ -192,7 +191,7 @@ class zimbra_partner(osv.osv_memory):
                 dictcreate[key] = False
         if not eval(dictcreate.get('partner_id')):
             dictcreate.update({'partner_id': False})
-        create_id = self.pool.get('res.partner.address').create(cr, user, dictcreate)
+        create_id = self.pool.get('res.partner').create(cr, user, dictcreate)
         return create_id
 
     def history_message(self, cr, uid, vals):
@@ -313,10 +312,9 @@ class zimbra_partner(osv.osv_memory):
             @param uid: the current user’s ID for security checks,
             @param email: Email address to search for
         """
-        address_pool = self.pool.get('res.partner.address')
+        address_pool = self.pool.get('res.partner')
         address_ids = address_pool.search(cr, user, [('email','=',email)])
         res = {}
-
         if not address_ids:
             res = {
                 'email': '',
@@ -325,7 +323,7 @@ class zimbra_partner(osv.osv_memory):
             address_id = address_ids[0]
             address = address_pool.browse(cr, user, address_id)
             res = {
-                'partner_name': address.partner_id and address.partner_id.name or '',
+                'partner_name': address and address.name or '',
                 'contactname': address.name,
                 'street': address.street or '',
                 'street2': address.street2 or '',
@@ -337,7 +335,6 @@ class zimbra_partner(osv.osv_memory):
                 'phone': address.phone or '',
                 'mobile': address.mobile or '',
                 'fax': address.fax or '',
-                'partner_id': address.partner_id and str(address.partner_id.id) or '',
                 'res_id': str(address.id),
             }
         return res.items()
@@ -352,7 +349,7 @@ class zimbra_partner(osv.osv_memory):
         dictcreate = dict(vals)
         res_id = dictcreate.get('res_id',False)
         result = {}
-        address_pool = self.pool.get('res.partner.address')
+        address_pool = self.pool.get('res.partner')
         if not (dictcreate.get('partner_id')): # TOCHECK: It should be check res_id or not
             dictcreate.update({'partner_id': False})
             create_id = address_pool.create(cr, user, dictcreate)
@@ -361,7 +358,6 @@ class zimbra_partner(osv.osv_memory):
         if res_id:
             address_data = address_pool.read(cr, user, int(res_id), [])
             result = {
-               'partner_id': address_data['partner_id'] and address_data['partner_id'][0] or False, #TOFIX: parter_id should take from address_data
                'country_id': dictcreate['country_id'] and int(dictcreate['country_id'][0]) or False,
                'state_id': dictcreate['state_id'] and int(dictcreate['state_id'][0]) or False,
                'name': dictcreate['name'],
@@ -418,7 +414,7 @@ class zimbra_partner(osv.osv_memory):
         er_val=[]
         for object in obj:
             dyn_object = self.pool.get(object)
-            if object == 'res.partner.address':
+            if object == 'res.partner':
                 search_id1 = dyn_object.search(cr,user,[('name','ilike',value)])
                 search_id2 = dyn_object.search(cr,user,[('email','=',value)])
                 if search_id1:

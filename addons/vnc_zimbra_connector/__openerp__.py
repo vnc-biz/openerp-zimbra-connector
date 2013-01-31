@@ -5,7 +5,7 @@
     "website" : "http://www.vnc.biz/",
     "depends" : [
         "base",
-        "crm_caldav"
+        'crm',
     ],
     "category" : "Generic Modules/Zimbra interface",
     "description": """

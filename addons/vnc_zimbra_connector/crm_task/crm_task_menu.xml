@@ -35,8 +35,7 @@
 			<field name="view_mode">calendar,tree,form,gantt</field>
 			<field name="view_id" ref="crm_case_calendar_view_meet" />
 			<field name="context">{'virtual_id':False,"search_default_user_id":uid,
-				'search_default_section_id':
-				section_id,'default_task_type':'t','search_default_current':1}</field>
+				'default_task_type':'t','search_default_current':1}</field>
 			<field name="domain">[('task_type','=','t')]</field>
 			<field name="search_view_id" ref="view_crm_case_tasks_filter" />
 			<field name="help">The task calendar is shared between the sales teams

@@ -17,7 +17,6 @@
       account,or any other object and attach selected mail as eml file in 
       attachment of selected record. You can create Documents for crm Lead,
       HR Applicant and project issue from selected mails.
-
       """,
     "init_xml" : [],
     "demo_xml" : [],

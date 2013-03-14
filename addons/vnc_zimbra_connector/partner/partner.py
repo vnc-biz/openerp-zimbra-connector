@@ -204,7 +204,7 @@ class zimbra_partner(osv.osv_memory):
             @param uid: the current user’s ID for security checks,
             @param vals: Valuse for archiving email
                 [(object_name,object_id),{binary_of_email}] 
-            
+
         """
         for val in vals:
             if not isinstance(val, (list,tuple)):
@@ -281,7 +281,6 @@ class zimbra_partner(osv.osv_memory):
             @param message: ID of message to search for
             @param context: A standard dictionary for contextual values
         """
-        #@param message: string of mail which is read from EML File
         #@return model,res_id
         references = []
         dictcreate = dict(message)

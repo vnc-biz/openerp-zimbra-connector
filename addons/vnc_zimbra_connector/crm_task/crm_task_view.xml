@@ -48,6 +48,7 @@
 									<separator string="Contacts" />
 									<newline />
 									<field name="partner_id" string="Partner" on_change="onchange_partner_id(partner_id)" />
+									<field name="partner_address_id" string="Contact" on_change="onchange_partner_address_id(partner_address_id, email_from)" />
 									<field name="phone" />
 									<field name="mobile" />
 									<field name="email_from" />
@@ -76,10 +77,11 @@
 			<field name="model">crm.task</field>
 			<field name="type">tree</field>
 			<field name="arch" type="xml">
-				<tree string="Tasks" colors="red:state=='open'">
+				<tree string="Tasks" colors="red:date_deadline and (date_deadline &lt;= current_datetime and state=='open')">
 					<field name="name" string="Subject" />
 					<field name="date" string="Start Date" />
 					<field name="duration" invisible="1" />
+					<field name="partner_address_id" />
 					<field name="phone" />
 					<field name="mobile" />
 					<field name="location" />

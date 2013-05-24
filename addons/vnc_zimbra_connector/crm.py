@@ -58,7 +58,7 @@ class lead_address_line(osv.osv):
                 'responsibility': fields.many2one('partner.responsibility','Responsibility'),
                 }
 
-    def onchange_partner_address(self,cr,uid,ids,partner_address_id,context=None):
+    def onchange_partner_address_id(self,cr,uid,ids,partner_address_id,context=None):
         """
         @param self: The object pointer
         @param cr: the current row, from the database cursor,

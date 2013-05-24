@@ -30,14 +30,26 @@ class crm_task(base_state,osv.osv):
 
         if context and 'default_opportunity_id' in context and context['default_opportunity_id']:
             crm_pool = self.pool.get('crm.lead')
-            crm_Data = crm_pool.read(cr, uid , int(context['default_opportunity_id']), ['partner_id'])
+            crm_Data = crm_pool.read(cr, uid , int(context['default_opportunity_id']), ['partner_id','partner_address_id'])
             res['partner_id'] = crm_Data['partner_id'] and crm_Data['partner_id'][0] or False
+            context['default_partner_address_id'] = False
+            context['default_partner_id'] = res['partner_id']
+
+        if context and context.get('default_partner_address_id',False):
+            read_data = self.pool.get('res.partner').read(cr, uid, context.get('default_partner_address_id'))
+            f_name = self.pool.get('res.partner').read(cr, uid, context.get('default_partner_address_id'), ['name'])
+            res['first_name'] = f_name['name']
+            res['partner_id'] = read_data['partner_id'] and read_data['partner_id'][0] or False
             context['default_partner_id'] = res['partner_id']
 
         if context and context.get("default_partner_id",False):
             onchange_val = self.onchange_partner_id(cr, uid, [], context.get("default_partner_id"))
             res.update(onchange_val['value'])
             addr = self.pool.get('res.partner').address_get(cr, uid, [int(context.get("default_partner_id"))], ['contact','default'])
+            res['partner_address_id'] = addr['contact']
+            if res.get('partner_address_id',False) and 'first_name' not in res:
+                f_name = self.pool.get('res.partner').read(cr, uid, res.get('partner_address_id'), ['name'])
+                res['first_name'] = f_name['name']
 
         return res
 
@@ -56,8 +68,9 @@ class crm_task(base_state,osv.osv):
         'name': fields.char('Summary', size=124),
         'partner_id': fields.many2one('res.partner', 'Partner'),
         'company_id': fields.many2one('res.company', 'Company'),
-        'phone':fields.related('partner_id','phone',type="char", size=64, string="Phone"),
-        'mobile':fields.related('partner_id','mobile',type="char", size=64, string="Mobile"),
+        'partner_address_id': fields.many2one('res.partner', 'Partner Contact'),
+        'phone':fields.related('partner_address_id','phone',type="char", size=64, string="Phone"),
+        'mobile':fields.related('partner_address_id','mobile',type="char", size=64, string="Mobile"),
         'description':fields.text('Description'),
         'section_id': fields.many2one('crm.case.section', 'Sales Team', states={'done': [('readonly', True)]}, \
                         select=True, help='Sales team to which Case belongs to.'),

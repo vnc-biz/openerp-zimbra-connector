@@ -1,6 +1,6 @@
 {
     "name" : "Zimbra Interface",
-    "version" : "1.0.1",
+    "version" : "1.1.0",
     "author" : "VNC",
     "website" : "http://www.vnc.biz/",
     "depends" : [

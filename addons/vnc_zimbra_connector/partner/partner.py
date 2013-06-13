@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from osv import fields, osv
 import base64
 import email

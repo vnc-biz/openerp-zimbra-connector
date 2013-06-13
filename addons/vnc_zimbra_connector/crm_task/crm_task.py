@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from base_calendar import base_calendar
 from openerp.addons.base_status.base_state import base_state
 from osv import fields, osv

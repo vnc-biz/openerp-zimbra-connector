@@ -657,3 +657,11 @@ class crm_meeting(osv.osv):
         return True
 
 crm_meeting()
+
+class res_partner(osv.osv):
+    _inherit='res.partner'
+    _columns={
+              'middle_name':fields.char('Middle Name',size=128),
+              'last_name':fields.char('Last Name',size=128),
+              }
+res_partner()

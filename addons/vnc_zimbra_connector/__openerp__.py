@@ -26,6 +26,7 @@
         'crm_view.xml',
         'crm_task/crm_task_view.xml',
         'crm_task/crm_task_menu.xml',
+        'partner/partner_view.xml'
     ],
     "active": False,
     'application': True,

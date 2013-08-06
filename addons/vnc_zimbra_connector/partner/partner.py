@@ -11,6 +11,9 @@ from datetime import datetime
 import re
 import pooler
 from email.header import decode_header
+import time
+from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
+import ast
 
 class email_server_tools(osv.osv_memory):
     _name = "email.server.tools"
@@ -664,4 +667,55 @@ class res_partner(osv.osv):
               'middle_name':fields.char('Middle Name',size=128),
               'last_name':fields.char('Last Name',size=128),
               }
+    
+    def partner_sync_openerp(self,cr, uid, zuid=False, addbookid=False, context=None):
+        datas = False
+        deleted_datas = {'deleted_datas':[]}
+        zimbra_contactsync_pool = self.pool.get('zimbra.contactsync.log')
+        if not zuid and not addbookid:
+            return {'error':'UserID/AddressBook ID missing !'}
+        zsync_ids = zimbra_contactsync_pool.search(cr, uid, [('zimbra_uid','=',zuid),('addbook_id','=',addbookid)])
+        if zsync_ids:
+            data_read = zimbra_contactsync_pool.read(cr, uid, zsync_ids[0])
+            partner_ids = self.search(cr, uid, [('write_date','>',datetime.strptime(data_read['last_sync'],'%Y-%m-%d %H:%M:%S')),('email','!=',False)])
+            if data_read['delete_items']:
+                deleted_datas['deleted_datas'] = ast.literal_eval(data_read['delete_items'])
+            zimbra_contactsync_pool.write(cr, uid, zsync_ids, {
+                                       'last_sync':time.strftime('%Y-%m-%d %H:%M:%S'),
+                                       'delete_items':'',
+                                       })
+            datas = self.export_data(cr,uid,partner_ids,['id','name','middle_name','last_name','city','street','street2','zip','phone','fax','email','mobile','parent_id','title','country_id'])
+        else:
+            partner_id = self.search(cr, uid, [('email','!=',False)])
+            datas = self.export_data(cr,uid,partner_id,['id','name','middle_name','last_name','city','street','street2','zip','phone','fax','email','mobile','parent_id','title','country_id'])
+            zimbra_contactsync_pool.create(cr, uid, {
+                                       'zimbra_uid':zuid,
+                                       'addbook_id':addbookid,
+                                       'last_sync':time.strftime('%Y-%m-%d %H:%M:%S')
+                                       })
+        return datas, deleted_datas
+    
+    def unlink(self, cr, uid, ids, context=None):
+        read_data = [x['email'] for x in self.read(cr, uid, ids, ['email']) if x['email']]
+        all_ids = self.pool.get('zimbra.contactsync.log').search(cr, uid, [])
+        for zcs in self.pool.get('zimbra.contactsync.log').browse(cr, uid, all_ids):
+            if zcs.delete_items:
+                data_write = ast.literal_eval(zcs.delete_items) + read_data
+            else:
+                data_write = read_data
+            self.pool.get('zimbra.contactsync.log').write(cr, uid, zcs.id, {'delete_items':data_write})
+        return super(res_partner, self).unlink(cr, uid, ids, context=context)
+        
 res_partner()
+
+class zimbra_contactsync_log(osv.osv):
+    _name = 'zimbra.contactsync.log'
+    _rec_name = 'zimbra_uid'
+    _columns = {
+                'zimbra_uid':fields.char('Zimbra UserID',size=256),
+                'addbook_id':fields.char('AddresBook ID',size=256),
+                'last_sync':fields.datetime('Last Sync Time'),
+                'delete_items':fields.text('Delete Sync Pending Partners')
+                }
+    _defaults = {'delete_items':'[]'}
+zimbra_contactsync_log()

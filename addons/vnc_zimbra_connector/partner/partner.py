@@ -667,6 +667,50 @@ class res_partner(osv.osv):
               'middle_name':fields.char('Middle Name',size=128),
               'last_name':fields.char('Last Name',size=128),
               }
+    def name_get(self, cr, uid, ids, context=None):
+        if context is None:
+            context = {}
+        if isinstance(ids, (int, long)):
+            ids = [ids]
+        res = []
+        for record in self.browse(cr, uid, ids, context=context):
+            name = record.name +' '+ (record.last_name or '')
+            if record.parent_id and not record.is_company:
+                name =  "%s, %s" % (record.parent_id.name, name)
+            if context.get('show_address'):
+                name = name + "\n" + self._display_address(cr, uid, record, without_company=True, context=context)
+                name = name.replace('\n\n','\n')
+                name = name.replace('\n\n','\n')
+            if context.get('show_email') and record.email:
+                name = "%s <%s>" % (name, record.email)
+            res.append((record.id, name))
+        return res
+    
+    def name_search(self, cr, uid, name, args=None, operator='ilike', context=None, limit=100):
+        if not args:
+            args = []
+        if name and operator in ('=', 'ilike', '=ilike', 'like', '=like'):
+            # search on the name of the contacts and of its company
+            search_name = name
+            if operator in ('ilike', 'like'):
+                search_name = '%%%s%%' % name
+            if operator in ('=ilike', '=like'):
+                operator = operator[1:]
+            query_args = {'name': search_name}
+            limit_str = ''
+            if limit:
+                limit_str = ' limit %(limit)s'
+                query_args['limit'] = limit
+            cr.execute('''SELECT partner.id FROM res_partner partner
+                          LEFT JOIN res_partner company ON partner.parent_id = company.id
+                          WHERE partner.email ''' + operator +''' %(name)s
+                             OR partner.last_name || partner.name || ' (' || COALESCE(company.name,'') || ')'
+                          ''' + operator + ' %(name)s ' + limit_str, query_args)
+            ids = map(lambda x: x[0], cr.fetchall())
+            ids = self.search(cr, uid, [('id', 'in', ids)] + args, limit=limit, context=context)
+            if ids:
+                return self.name_get(cr, uid, ids, context)
+        return super(res_partner,self).name_search(cr, uid, name, args, operator=operator, context=context, limit=limit)
     
     def partner_sync_openerp(self,cr, uid, zuid=False, addbookid=False, context=None):
         datas = False

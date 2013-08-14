@@ -1,6 +1,12 @@
 # -*- coding: utf-8 -*-
-from osv import fields, osv
+from openerp.osv import fields, osv
+from functools import partial
+from datetime import datetime, timedelta, date
+from dateutil import parser
 import pytz
+import re
+import time
+import hashlib
 
 class partner_responsibility(osv.osv):
     _name='partner.responsibility'
@@ -115,3 +121,77 @@ def search_read(self, cr, uid, domain, fields=[], context={}):
     return read_data
 
 osv.osv.search_read = search_read
+
+class res_users(osv.osv):
+    """ Base User Class is inherited for Region Management """
+
+    _inherit = 'res.users'
+    
+    
+    def get_ics_file(self, cr, uid, event_ids, context=None):
+        """
+        Returns iCalendar file for the event invitation.
+        @param self: the object pointer
+        @param cr: the current row, from the database cursor
+        @param uid: the current user's id for security checks
+        @param event_obj: event object (browse record)
+        @param context: a standard dictionary for contextual values
+        @return: .ics file content
+        """
+        res = None
+        def uid_generat(data):  #UID generat
+            sha_obj = hashlib.sha1(data)
+            return sha_obj.hexdigest()
+    
+        def ics_datetime(idate, short=False):
+            if idate:
+                #returns the datetime as UTC, because it is stored as it in the database
+                return datetime.strptime(idate, '%Y-%m-%d %H:%M:%S').replace(tzinfo=pytz.timezone('UTC'))
+            return False
+        try:
+            # FIXME: why isn't this in CalDAV?
+            import vobject
+        except ImportError:
+            return res
+
+        cal = vobject.iCalendar()
+        for event_obj in self.pool.get('calendar.event').browse(cr, uid, event_ids):
+            event = cal.add('vevent')
+            if not event_obj.date_deadline or not event_obj.date:
+                raise osv.except_osv(_('Warning!'),_("First you have to specify the date of the invitation."))
+            event.add('created').value = ics_datetime(time.strftime('%Y-%m-%d %H:%M:%S'))
+            event.add('dtstart').value = ics_datetime(event_obj.date)
+            event.add('dtend').value = ics_datetime(event_obj.date_deadline)
+            event.add('uid').value = uid_generat('crmTask'+str(event_obj.id))
+            event.add('summary').value = event_obj.name
+            if  event_obj.description:
+                event.add('description').value = event_obj.description
+            if event_obj.location:
+                event.add('location').value = event_obj.location
+                
+            if event_obj.alarm_id:
+                # computes alarm data
+                valarm = event.add('valarm')
+                alarm_object = self.pool.get('res.alarm')
+                alarm_data = alarm_object.read(cr, uid, event_obj.alarm_id.id, context=context)
+                # Compute trigger data
+                interval = alarm_data['trigger_interval']
+                occurs = alarm_data['trigger_occurs']
+                duration = (occurs == 'after' and alarm_data['trigger_duration']) \
+                                                or -(alarm_data['trigger_duration'])
+                related = alarm_data['trigger_related']
+                trigger = valarm.add('TRIGGER')
+                trigger.params['related'] = [related.upper()]
+                if interval == 'days':
+                    delta = timedelta(days=duration)
+                if interval == 'hours':
+                    delta = timedelta(hours=duration)
+                if interval == 'minutes':
+                    delta = timedelta(minutes=duration)
+                trigger.value = delta
+                # Compute other details
+                valarm.add('DESCRIPTION').value = alarm_data['name'] or 'OpenERP'
+    
+        res = cal.serialize()
+        return res
+res_users()

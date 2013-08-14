@@ -2,3 +2,4 @@
 import partner
 import crm
 import crm_task
+import wsgi_service

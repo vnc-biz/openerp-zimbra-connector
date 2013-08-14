@@ -77,7 +77,7 @@
 			<field name="model">crm.task</field>
 			<field name="type">tree</field>
 			<field name="arch" type="xml">
-				<tree string="Tasks" colors="red:date_deadline and (date_deadline &lt;= current_datetime and state=='open')">
+				<tree string="Tasks" colors="red:date_deadline">
 					<field name="name" string="Subject" />
 					<field name="date" string="Start Date" />
 					<field name="duration" invisible="1" />

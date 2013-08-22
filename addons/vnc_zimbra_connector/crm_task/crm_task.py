@@ -167,6 +167,7 @@ class crm_task(base_state,osv.osv):
         'user_id': lambda self, cr, uid, ctx: uid,
         'stage_id': _get_stage,
         'company_id': lambda s, cr, uid, c: s.pool.get('res.company')._company_default_get(cr, uid, s._name, context=c),
+	'description': " ",
     }
 
     def case_open(self, cr, uid, ids, *args):

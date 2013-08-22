@@ -152,13 +152,13 @@ def make_service_call(host, port, username, pwd, dbname,option):
                 todo.add('LAST-MODIFIED', DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S'))
             todo['uid'] = uid_generat('crmTask'+str(data['id']))
             if data['priority'] == 'low':
-                todo.add('priority', 1)
+                todo.add('priority', 9)
             elif data['priority'] == 'medium':
-                todo.add('priority', 2)
+                todo.add('priority', 5)
             elif data['priority'] == 'high':
-                todo.add('priority', 3)
+                todo.add('priority', 1)
             else:
-                todo.add('priority', 0)
+                todo.add('priority', 5)
         
             if data['state'] == 'done':
                 todo.add('status', 'COMPLETED')

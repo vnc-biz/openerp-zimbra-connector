@@ -155,7 +155,7 @@ class res_users(osv.osv):
             return res
 
         cal = vobject.iCalendar()
-        for event_obj in self.pool.get('calendar.event').browse(cr, uid, event_ids):
+        for event_obj in self.pool.get('crm.meeting').browse(cr, uid, event_ids):
             event = cal.add('vevent')
             if not event_obj.date_deadline or not event_obj.date:
                 raise osv.except_osv(_('Warning!'),_("First you have to specify the date of the invitation."))

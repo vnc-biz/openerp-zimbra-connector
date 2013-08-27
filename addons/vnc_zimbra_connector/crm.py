@@ -162,7 +162,7 @@ class res_users(osv.osv):
             event.add('created').value = ics_datetime(time.strftime('%Y-%m-%d %H:%M:%S'))
             event.add('dtstart').value = ics_datetime(event_obj.date)
             event.add('dtend').value = ics_datetime(event_obj.date_deadline)
-            event.add('uid').value = uid_generat('crmTask'+str(event_obj.id))
+            event.add('uid').value = uid_generat('crmCalendar'+str(event_obj.id))
             event.add('summary').value = event_obj.name
             if  event_obj.description:
                 event.add('description').value = event_obj.description

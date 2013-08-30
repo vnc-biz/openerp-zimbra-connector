@@ -172,7 +172,7 @@ def make_service_call(host, port, username, pwd, dbname,option):
             cal.add_component(todo)
         return cal.to_ical()
     else:
-        event_ids = sock.execute(dbname, uid, pwd, 'crm.meeting', 'search', [('user_id','=',uid)])
+        event_ids = sock.execute(dbname, uid, pwd, 'calendar.event', 'search', [('user_id','=',uid)])
         event_data = sock.execute(dbname, uid, pwd, 'res.users', 'get_ics_file', event_ids)
         return event_data
 start_service()

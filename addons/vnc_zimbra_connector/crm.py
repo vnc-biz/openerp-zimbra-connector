@@ -159,15 +159,26 @@ class res_users(osv.osv):
             event = cal.add('vevent')
             if not event_obj.date_deadline or not event_obj.date:
                 raise osv.except_osv(_('Warning!'),_("First you have to specify the date of the invitation."))
-            event.add('created').value = ics_datetime(time.strftime('%Y-%m-%d %H:%M:%S'))
-            event.add('dtstart').value = ics_datetime(event_obj.date)
-            event.add('dtend').value = ics_datetime(event_obj.date_deadline)
-            event.add('uid').value = uid_generat('crmCalendar'+str(event_obj.id))
-            event.add('summary').value = event_obj.name
+            event.add('CREATED').value = ics_datetime(time.strftime('%Y-%m-%d %H:%M:%S'))
+            event.add('DTSTART').value = ics_datetime(event_obj.date)
+            event.add('DTEND').value = ics_datetime(event_obj.date_deadline)
+            if event_obj.write_date:
+                event.add('DTSTAMP').value = ics_datetime(event_obj.write_date)
+                event.add('LAST-MODIFIED').value = ics_datetime(event_obj.write_date)
+            if event_obj.allday == True:
+                event.add('X-MICROSOFT-CDO-ALLDAYEVENT').value = 'TRUE'
+            else:
+                event.add('X-MICROSOFT-CDO-ALLDAYEVENT').value = 'FALSE'
+                
+            if event_obj.show_as:
+                event.add('X-MICROSOFT-CDO-INTENDEDSTATUS').value = event_obj.show_as
+                
+            event.add('UID').value = uid_generat('crmCalendar'+str(event_obj.id))
+            event.add('SUMMARY').value = event_obj.name
             if  event_obj.description:
-                event.add('description').value = event_obj.description
+                event.add('DESCRIPTION').value = event_obj.description
             if event_obj.location:
-                event.add('location').value = event_obj.location
+                event.add('LOCATION').value = event_obj.location
                 
             if event_obj.alarm_id:
                 # computes alarm data

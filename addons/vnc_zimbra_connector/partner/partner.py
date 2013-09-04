@@ -164,7 +164,7 @@ class email_server_tools(osv.osv_memory):
                         elif part.get_content_subtype() == 'plain':
                             body = content
                             has_plain_text = True
-                elif part.get_content_maintype() in ('application', 'image'):
+                elif part.get_content_maintype() in ('application', 'image', 'audio', 'video'):
                     if filename :
                         attachments[filename] = part.get_payload(decode=True)
                     else:

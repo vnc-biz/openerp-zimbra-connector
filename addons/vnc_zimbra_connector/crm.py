@@ -206,3 +206,11 @@ class res_users(osv.osv):
         res = cal.serialize()
         return res
 res_users()
+
+class calendar_event(osv.osv):
+    _inherit = 'calendar.event'
+    _columns = {
+                'create_date': fields.datetime('Creation Date'),
+                'write_date': fields.datetime('Write Date'),
+                }
+calendar_event()

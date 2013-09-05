@@ -2,4 +2,4 @@
 import partner
 import crm
 import crm_task
-import wsgi_service
+import task_calendar_sync_server

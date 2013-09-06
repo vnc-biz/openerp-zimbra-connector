@@ -24,15 +24,13 @@ def application(environ, start_response):
             assert scheme.lower() == 'basic'
             username, password = data.decode('base64').split(':', 1)
             query_str = environ.get('QUERY_STRING')
-            para = query_str.split('&')
-            para_final = [x.split('=') for x in para]
+            para_final = query_str.split('=')
             cal_data = ''
-            
             try:
                 if environ.get('PATH_INFO') == '/task':  
-                    cal_data = make_service_call(para_final[0][1],para_final[1][1],username,password,para_final[2][1],'task')
+                    cal_data = make_service_call(environ.get('SERVER_NAME'),environ.get('SERVER_PORT'),username,password,para_final[1],'task')
                 elif environ.get('PATH_INFO') == '/calendar':
-                    cal_data = make_service_call(para_final[0][1],para_final[1][1],username,password,para_final[2][1],'calendar')
+                    cal_data = make_service_call(environ.get('SERVER_NAME'),environ.get('SERVER_PORT'),username,password,para_final[1],'calendar')
                 else:
                     body = 'Invalid URL'
                     headers = [

@@ -68,15 +68,22 @@ class email_server_tools(osv.osv_memory):
 
     def history_message(self, cr, uid, model, res_id, message, context=None):
         #@param message: string of mail which is read from EML File
+        import email.header
         attachment_pool = self.pool.get('ir.attachment')
         msg = self.parse_message(message)
         attachments = msg.get('attachments', [])
         att_ids = []
         for attachment in attachments:
+            try:
+                name= u''.join([
+                    unicode(b, e or 'ascii') for b, e in email.header.decode_header(attachment)
+                ])
+            except email.Errors.HeaderParseError:
+                pass # leave name as it was
             data_attach = {
-                'name': attachment,
+                'name': name,
                 'datas': binascii.b2a_base64(str(attachments.get(attachment))),
-                'datas_fname': attachment,
+                'datas_fname': name,
                 'description': 'Mail attachment From zimbra msg_id: %s' %(msg.get('message_id', '')),
                 'res_model': model,
                 'res_id': res_id,

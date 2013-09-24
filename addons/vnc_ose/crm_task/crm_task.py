@@ -14,8 +14,60 @@ class crm_task(base_state,osv.osv):
     _name = 'crm.task'
     _description = "Task"
     _order = "date asc"
-    _inherit = ['calendar.event']
+    _inherit = ["calendar.event"]
     _check_fields = ['user_id']
+
+    def check_fields(self, cr, uid, ids, vals, context={}):
+        result = {}
+        if not isinstance(ids,(list,tuple)):
+            ids = [ids]
+        for self_obj in self.read(cr, uid, ids, self._check_fields, context=context):
+            for field_check in self._check_fields:
+                if vals and field_check in vals and self_obj[field_check] != vals[field_check]:
+                    if  vals[field_check]:
+                        f_val = self.pool.get('res.users').read(cr, uid, vals[field_check], ['name'])['name']
+                    else:
+                        f_val = ''
+                    self.pool.get('crm.field.history').create(cr, uid, {
+                                'value_after':f_val,
+                                'value_before':self_obj[field_check] and self_obj[field_check][-1] or '',
+                                'task_id':self_obj['id'],
+                                'user_id':uid,
+                                'field_name':field_check,
+                    })
+
+        return result
+
+    def write(self, cr, uid, ids, vals, context={}):
+        if not isinstance(ids, (list,tuple)):
+            ids = [ids]
+        old_datas = self.read(cr, uid, ids, ['user_id','date','date_deadline'], context=context)
+        for old_data in old_datas:
+            if not old_data['user_id'] or ('user_id' in vals and vals['user_id'] != old_data['user_id'][0]):
+                vals['user_delegated_id'] = uid
+                self.check_fields(cr, uid, old_data['id'], vals, context)
+            # Copying date to date_deadline if it is False, calling onchage will return the date_deadline
+            if not old_data['date_deadline'] and old_data['date']:
+                date = self.browse(cr, uid, ids[0]).date
+                data = self.onchange_dates(cr, uid, ids[0], date, duration=2, context=context)
+                vals.update(data['value'])
+        return super(crm_task, self).write(cr, uid, ids, vals, context=context)
+
+    def create(self, cr, uid, vals, context={}):
+        if vals and 'user_id' in vals and vals['user_id'] != uid:
+            vals['user_delegated_id'] = uid
+
+        res = super(crm_task, self).create(cr, uid, vals, context=context)
+        if vals and 'user_id' in vals and vals['user_id'] != uid:
+            self.check_fields(cr, uid, res, vals, context)
+
+        # Copying date to date_deadline if it is False, calling onchage will return the date_deadline
+        if vals.get('date_deadline',False) == False:
+            if vals.get('date',False):
+                data = self.onchange_dates(cr, uid, [], vals['date'], duration=2, context=context)
+                vals.update(data['value'])
+
+        return res
 
     def default_get(self, cr, uid, fields, context=None):
         """
@@ -54,6 +106,13 @@ class crm_task(base_state,osv.osv):
 
         return res
 
+    def onchange_partner_id(self, cr, uid, ids, part, email=False):
+        res = {}
+        if not part:
+            return {'value' : {'email_from':False, 'phone':False, 'mobile':False}}
+        res = self.pool.get('res.partner').read(cr, uid, part, ['name','phone','mobile','email'])
+        return {'value' : {'email_from':res['email'], 'phone':res['phone'], 'mobile':res['mobile']}}
+
     def _set_short_desc(self, cr, uid, ids, name, arg, context=None):
         res = {}
         short_desc = ''
@@ -66,7 +125,9 @@ class crm_task(base_state,osv.osv):
 
     _columns = {
         # From crm.case
+        'crm_id':fields.char('CRM ID',size=256),
         'name': fields.char('Summary', size=124),
+        'date': fields.datetime("Date"),
         'partner_id': fields.many2one('res.partner', 'Partner'),
         'company_id': fields.many2one('res.company', 'Company'),
         'partner_address_id': fields.many2one('res.partner', 'Partner Contact'),
@@ -80,10 +141,12 @@ class crm_task(base_state,osv.osv):
         'email_from': fields.related('partner_id','email',type="char", size=64, string="Email"),
         'create_date': fields.datetime('Creation Date'),
         'write_date': fields.datetime('Write Date'),
+        'user_delegated_id':fields.many2one('res.users','Delegated By', readonly=True),
         'stage_id': fields.many2one('crm.case.stage', 'Stage', domain="[('type','=','task')]"),
         'categ_id': fields.many2one('crm.case.categ', 'task Type', \
                         domain="[('object_id.model', '=', 'crm.task')]", \
             ),
+        'duration': fields.float('Duration', digits=(16,2)),
         'date_closed': fields.datetime('Closed'),
         'date_deadline': fields.datetime('Deadline', states={'done': [('readonly', True)]}),
         'priority': fields.selection([
@@ -91,16 +154,20 @@ class crm_task(base_state,osv.osv):
                                       ('medium','Medium'),
                                       ('low','Low') ], 'Priority'),
         'message_ids': fields.one2many('mail.message', 'res_id', 'Messages', domain=[('model','=',_name)]),
-        'state': fields.selection([
-                                   ('draft', 'Unconfirmed'),
-                                   ('open', 'Confirmed'),
-                                   ('done', 'Done'),
-                                   ('cancel', 'Cancelled'),], 'State', \
+        'history_crm_fields_ids': fields.one2many('crm.field.history', 'task_id', 'Fields History', ),
+        'state': fields.selection([('open', 'Confirmed'),
+                                     ('draft', 'Unconfirmed'),
+                                     ('cancel', 'Cancelled'),
+                                     ('done', 'Done')], 'State', \
                                      size=16, readonly=True),
+        'user_id': fields.many2one('res.users', 'User'),
+        'file_name':fields.char('File Name',size=256),
+        'file_mime_type':fields.char('File Mine Type',size=256),
         'first_name':fields.char('First Name',size=256),
         'last_name':fields.char('Last Name',size=256),
         'task_type':fields.selection([('t','Task'),('n','Note')],'Task Type'),
         'meeting_id':fields.many2one('crm.meeting','Meetings'),
+        'owner_changed':fields.boolean('Owner Changed'),
         'short_description': fields.function(_set_short_desc, type='text', method=True, string='Short Description',),
     }
 
@@ -218,6 +285,71 @@ class crm_task(base_state,osv.osv):
         cases = self.browse(cr, uid, ids)
         cases[0].state # to fill the browse record cache
         self.write(cr, uid, ids, {'state': 'draft', 'active': True})
+        return True
+
+    def onchange_user_id(self,cr,uid,ids,user_id,context={}):
+
+        if not user_id:
+            return {'value':{}}
+        else:
+            user_section = False
+            user_obj = self.pool.get('res.users').browse(cr, uid, user_id)
+            user_section = user_obj.default_section_id and user_obj.default_section_id.id or False
+            if user_id != uid :
+                    return {'value':{'owner_changed':1, 'section_id': user_section}}
+            else:
+                return {'value':{'owner_changed':0, 'section_id': user_section}}
+
+        return
+
+    def salesman_change_mail_notification_task(self, cr, uid, automatic=False,
+                                template=False,type='t', context=None,):
+
+        task_ids = self.search(cr, uid, [('owner_changed','=',True),('task_type','=',type)])
+        if not task_ids :
+            return True
+        if not template:
+            raise osv.except_osv(_('Invalid Template !'),
+                        _('No Template Found for the given name %s!')%template)
+
+        template_obj=self.pool.get('email.template')
+        so_template = template_obj.search(cr,uid,[('name','=',template)])
+        if not so_template:
+            raise osv.except_osv(_('Invalid Template !'),
+                        _('No Template Found for the given name %s!')%template)
+        for task_id in task_ids:
+            action = template_obj.send_mail(cr,uid,so_template[0],task_id,context)
+        self.write(cr, uid, task_ids, {'owner_changed':False})
+        return True
+
+    def task_idel_reminder(self, cr, uid, automatic=False, template=False, no_of_days=0, type='t',no_of_reminder=1, context=None):
+        d1 = date.today()
+        d2 = str(d1 - timedelta(days=no_of_days))
+        task_ids = self.search(cr, uid, [('state','not in',('done','cancel')),('create_date','<',d2),('task_type','=',type)])
+        cr.execute("SELECT count(res_id),res_id from cron_mail_sent where res_model='%s' and cron_name='%s' group by res_id "%(self._name,'task_idel_reminder'))
+        line_ids = map(lambda x: x, cr.fetchall())
+        line_ids = [x[1] for x in line_ids if x[0] >= no_of_reminder]
+        task_ids = list( set(task_ids) - set(line_ids))
+
+        if not task_ids :
+            return True
+        if not template:
+            raise osv.except_osv(_('Invalid Template !'),
+                        _('No Template Found for the given name %s!')%template)
+
+        template_obj=self.pool.get('email.template')
+        so_template = template_obj.search(cr,uid,[('name','=',template)])
+        if not so_template:
+            raise osv.except_osv(_('Invalid Template !'),
+                        _('No Template Found for the given name %s!')%template)
+
+        for task_id in task_ids:
+            action = template_obj.send_mail(cr,uid,so_template[0], task_id,context)
+            self.pool.get('cron.mail.sent').create(cr, uid, {
+                    'res_model':'%s'%(self._name),
+                    'res_id':task_id,
+                    'cron_name':'task_idel_reminder',
+                    })
         return True
 
 crm_task()

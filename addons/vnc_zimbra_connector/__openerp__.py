@@ -3,10 +3,7 @@
     "version" : "1.1.0",
     "author" : "VNC",
     "website" : "http://www.vnc.biz/",
-    "depends" : [
-        "base",
-        'crm',
-    ],
+    "depends" : ["base", "crm", "vnc_ose"],
     "category" : "Generic Modules/Zimbra interface",
     "description": """
       This module is required for the zimbra openerp plug-in to work
@@ -24,8 +21,6 @@
     "update_xml" : [
         'security/ir.model.access.csv',
         'crm_view.xml',
-        'crm_task/crm_task_view.xml',
-        'crm_task/crm_task_menu.xml',
         'partner/partner_view.xml'
     ],
     "active": False,

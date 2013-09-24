@@ -1,2 +1,4 @@
 "id","name","model_id:id","group_id:id","perm_read","perm_write","perm_create","perm_unlink"
 "access_partner_responsibility","partner_responsibility","model_partner_responsibility","base.group_user",1,1,1,0
+access_lead_address_line,lead.address.line,model_lead_address_line,base.group_user,1,1,1,1
+access_crm_task,crm.task,model_crm_task,base.group_user,1,1,1,1

@@ -1,6 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_zimbra_partner,zimbra.partner,model_zimbra_partner,base.group_user,1,1,1,1
 access_email_server_tools,email.server.tools,model_email_server_tools,base.group_user,1,1,1,1
-access_lead_address_line,lead.address.line,model_lead_address_line,base.group_user,1,1,1,1
-access_crm_task,crm.task,model_crm_task,base.group_user,1,1,1,1
 access_zimbra_contactsync_log,zimbra.contactsync.log,model_zimbra_contactsync_log,base.group_user,1,1,1,1

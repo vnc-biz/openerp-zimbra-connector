@@ -4,10 +4,38 @@ import xmlrpclib
 from icalendar import Calendar, Event, Todo
 import datetime as DT
 import hashlib
-from datetime import datetime
-import pytz
-import time
+import openerp
 
+
+def xmlrpc_return(start_response, service, method, params, legacy_exceptions=False):
+    """
+    Helper to call a service's method with some params, using a wsgi-supplied
+    ``start_response`` callback.
+
+    This is the place to look at to see the mapping between core exceptions
+    and XML-RPC fault codes.
+    """
+    # Map OpenERP core exceptions to XML-RPC fault codes. Specific exceptions
+    # defined in ``openerp.exceptions`` are mapped to specific fault codes;
+    # all the other exceptions are mapped to the generic
+    # RPC_FAULT_CODE_APPLICATION_ERROR value.
+    # This also mimics SimpleXMLRPCDispatcher._marshaled_dispatch() for
+    # exception handling.
+    
+    try:
+        result = openerp.netsvc.dispatch_rpc(service, method, params)
+        if service == 'db':
+            import re
+            r = openerp.tools.config['dbfilter']
+            result = [i for i in result if re.match(r, i)]
+        response = xmlrpclib.dumps((result,), methodresponse=1, allow_none=False, encoding=None)
+    except Exception, e:
+        if legacy_exceptions:
+            response = wsgi_server.xmlrpc_handle_exception_legacy(e)
+        else:
+            response = wsgi_server.xmlrpc_handle_exception(e)
+    start_response("200 OK", [('Content-Type','text/xml'), ('Content-Length', str(len(response)))])
+    return [response]
 
 def application(environ, start_response):
     if environ.get('PATH_INFO') in ['/task', '/calendar']:
@@ -153,4 +181,5 @@ def make_service_call(host, port, username, pwd, dbname, option):
         return cal.to_ical()
 
 wsgi_server.application = application
+wsgi_server.xmlrpc_return = xmlrpc_return
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

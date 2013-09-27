@@ -11,10 +11,10 @@
     """,
     "init_xml": [],
     "update_xml": [
-           'partner_view.xml',
-           'crm_task/crm_task_view.xml',
-           'crm_task/crm_task_menu.xml',
            'security/ir.model.access.csv',
+           "partner_view.xml",
+           "crm_task/crm_task_view.xml",
+           "crm_task/crm_task_menu.xml",
     ],
     'js':[
           ],

@@ -149,7 +149,7 @@ def make_service_call(host, port, username, pwd, dbname, option):
                 event.add('DESCRIPTION', data['description'])
             if data['location']:
                 event.add('LOCATION', data['location'])
-        cal.add_component(event)
+            cal.add_component(event)
         return cal.to_ical()
 
 wsgi_server.application = application

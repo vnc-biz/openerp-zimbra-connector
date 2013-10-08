@@ -294,11 +294,11 @@ class crm_task(base_state,osv.osv):
         else:
             user_section = False
             user_obj = self.pool.get('res.users').browse(cr, uid, user_id)
-            user_section = user_obj.default_section_id and user_obj.default_section_id.id or False
+#             user_section = user_obj.default_section_id and user_obj.default_section_id.id or False
             if user_id != uid :
-                    return {'value':{'owner_changed':1, 'section_id': user_section}}
+                    return {'value':{'owner_changed':1}}
             else:
-                return {'value':{'owner_changed':0, 'section_id': user_section}}
+                return {'value':{'owner_changed':0}}
 
         return
 

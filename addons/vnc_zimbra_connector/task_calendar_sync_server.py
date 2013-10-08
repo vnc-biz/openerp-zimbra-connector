@@ -5,6 +5,7 @@ from icalendar import Calendar, Event, Todo
 import datetime as DT
 import hashlib
 import openerp
+import pytz
 
 
 def xmlrpc_return(start_response, service, method, params, legacy_exceptions=False):
@@ -100,7 +101,6 @@ def make_service_call(host, port, username, pwd, dbname, option):
     uid = sock_common.login(dbname, username, pwd)
     sock = xmlrpclib.ServerProxy('http://'+host+':'+port+'/xmlrpc/object')
     if option == "task":
-    
         task_ids = sock.execute(dbname, uid, pwd, 'crm.task', 'search', [('task_type', '=', 't'), ('user_id', '=', uid)])
         task_data = sock.execute(dbname, uid, pwd, 'crm.task', 'read', task_ids,['name','description','date','date_deadline','priority','state','location','write_date'])
         
@@ -159,12 +159,12 @@ def make_service_call(host, port, username, pwd, dbname, option):
         for data in event_data:
             event = Event()
             if data['date_deadline'] and data['date']:
-                event.add('CREATED', ics_datetime(time.strftime('%Y-%m-%d %H:%M:%S')))
-                event.add('DTSTART', ics_datetime(data['date']))
-                event.add('DTEND', ics_datetime(data['date_deadline']))
+                event.add('CREATED', DT.datetime.strptime(data['date'], '%Y-%m-%d %H:%M:%S').date())
+                event.add('DTSTART', DT.datetime.strptime(data['date'], '%Y-%m-%d %H:%M:%S').date())
+                event.add('DTEND', DT.datetime.strptime(data['date_deadline'], '%Y-%m-%d %H:%M:%S').date())
             if data['write_date']:
-                event.add('DTSTAMP', ics_datetime(data['write_date']))
-                event.add('LAST-MODIFIED', ics_datetime(data['write_date']))
+                event.add('DTSTAMP', DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S').date())
+                event.add('LAST-MODIFIED', DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S').date())
             if data['allday']:
                 event.add('X-MICROSOFT-CDO-ALLDAYEVENT', 'TRUE')
             else:

@@ -6,6 +6,7 @@ import datetime as DT
 import hashlib
 import openerp
 import pytz
+import urllib2
 
 
 def xmlrpc_return(start_response, service, method, params, legacy_exceptions=False):
@@ -55,6 +56,8 @@ def application(environ, start_response):
             scheme, data = auth.split(None, 1)
             assert scheme.lower() == 'basic'
             username, password = data.decode('base64').split(':', 1)
+            username = urllib2.unquote(username)
+            password = urllib2.unquote(password)
             query_str = environ.get('QUERY_STRING')
             para_final = query_str.split('=')
             cal_data = ''

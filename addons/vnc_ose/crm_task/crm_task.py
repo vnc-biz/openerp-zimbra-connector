@@ -215,9 +215,10 @@ class crm_task(base_state,osv.osv):
         if allday: # For all day event
             value = {'duration': 24}
             duration = 24.0
+            
+        start_date = start_date and start_date.split('.')[0]
+        end_date = end_date and end_date.split('.')[0]
         
-        start_date = start_date.split('.')[0]
-        end_date = end_date.split('.')[0]
         start = datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S')
         
         if end_date and not duration:

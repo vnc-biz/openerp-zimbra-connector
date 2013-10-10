@@ -93,6 +93,7 @@
 					<field name="name" string="Subject" />
 					<field name="date" string="Start Date" />
 					<field name="duration" invisible="1" />
+					<field name="current_datetime" invisible="1" />
 					<field name="partner_id" />
 					<field name="phone" />
 					<field name="mobile" />

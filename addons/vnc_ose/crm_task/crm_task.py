@@ -122,6 +122,13 @@ class crm_task(base_state,osv.osv):
             else:
                 res[self_obj.id] = short_desc
         return res
+    
+    def _get_current_datetime(self, cr, uid, ids, name, arg, context=None):
+        res = {}
+        for self_obj in self.browse(cr, uid, ids, context=context):
+            print "THIS IS CURRENT DATETIME"
+            res[self_obj.id] = time.strftime('%Y-%m-%d %H:%M:%S')
+        return res
 
     _columns = {
         # From crm.case
@@ -169,6 +176,7 @@ class crm_task(base_state,osv.osv):
         'meeting_id':fields.many2one('crm.meeting','Meetings'),
         'owner_changed':fields.boolean('Owner Changed'),
         'short_description': fields.function(_set_short_desc, type='text', method=True, string='Short Description',),
+        'current_datetime':fields.function(_get_current_datetime, method=True, type='datetime', string='Current DateTime', readonly=True,help="It represents Current Datetime"),
     }
 
     def _check_end_date(self, cr, uid, ids, context=None):
@@ -207,8 +215,11 @@ class crm_task(base_state,osv.osv):
         if allday: # For all day event
             value = {'duration': 24}
             duration = 24.0
-
-        start = datetime.strptime(start_date, "%Y-%m-%d %H:%M:%S")
+        
+        start_date = start_date.split('.')[0]
+        end_date = end_date.split('.')[0]
+        start = datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S')
+        
         if end_date and not duration:
             end = datetime.strptime(end_date, "%Y-%m-%d %H:%M:%S")
             diff = end - start

@@ -126,7 +126,6 @@ class crm_task(base_state,osv.osv):
     def _get_current_datetime(self, cr, uid, ids, name, arg, context=None):
         res = {}
         for self_obj in self.browse(cr, uid, ids, context=context):
-            print "THIS IS CURRENT DATETIME"
             res[self_obj.id] = time.strftime('%Y-%m-%d %H:%M:%S')
         return res
 

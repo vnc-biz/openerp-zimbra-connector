@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+	<data>
+	
+		
+		<record id="view_lead_form_zimbra" model="ir.ui.view">
+			<field name="name">crm.lead.page.form.zimbra</field>
+			<field name="model">crm.lead</field>
+			<field name="inherit_id" ref="crm.crm_case_form_view_leads" />
+			<field name="arch" type="xml">
+				<xpath expr="//field[@name='contact_name']" position="replace">
+					<field name="contact_name" placeholder="First Name" class="oe_inline"/><field name="contact_last_name" placeholder="Last Name" class="oe_inline"/>
+<!-- 					<field name="contact_name" placeholder="First Name"/> -->
+<!-- 					<field name="contact_last_name" placeholder="Last Name"/> -->
+				</xpath>
+			</field>
+		</record>
+		
+	</data>
+</openerp>

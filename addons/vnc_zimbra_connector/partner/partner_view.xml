@@ -53,8 +53,8 @@
                 <xpath expr="/form/sheet/div/h1" position="replace">
                     <h2>
                     <field name="name" default_focus="1" placeholder="First Name" style="width: auto;max-width: 35%%"/>
-                    <field name="middle_name" placeholder="Middle Name" style="width: auto;max-width: 32%%"/>
-                    <field name="last_name" placeholder="Last Name" style="width: 31%%"/>
+                    <field name="middle_name" placeholder="Middle Name" style="width: auto;max-width: 32%%" attrs="{'invisible':[('is_company','=',True)]}"/>
+                    <field name="last_name" placeholder="Lastt Name" style="width: 31%%" attrs="{'invisible':[('is_company','=',True)]}"/>
                     </h2>
                 </xpath>
                 <xpath expr="/form/sheet/notebook/page/field/form/sheet/div/h1" position="replace">

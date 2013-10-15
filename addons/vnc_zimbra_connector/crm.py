@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 from openerp.osv import fields, osv
 import pytz
+import re
+import time
+import hashlib
+from openerp import tools
 
 class crm_meeting(osv.osv):
     """ CRM Meeting Cases """
@@ -33,7 +37,6 @@ class crm_lead(osv.osv):
                 'lead_add_line': fields.one2many('lead.address.line', 'lead_id',
                                                  'Lead Address Line'),
                 }
-
 crm_lead()
 
 class lead_address_line(osv.osv):

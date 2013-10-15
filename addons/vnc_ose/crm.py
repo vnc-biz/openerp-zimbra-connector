@@ -50,29 +50,51 @@ class crm_lead(osv.osv):
                                });
         return {'value' : values}
     
-    def _lead_create_contact(self, cr, uid, lead, name, is_company, parent_id=False, last_name='',context=None):
+    def _lead_create_contact(self, cr, uid, lead, name, is_company, parent_id=False, context=None):
         partner = self.pool.get('res.partner')
-        vals = {'name': name,
-            'last_name':last_name,
-            'user_id': lead.user_id.id,
-            'comment': lead.description,
-            'section_id': lead.section_id.id or False,
-            'parent_id': parent_id,
-            'phone': lead.phone,
-            'mobile': lead.mobile,
-            'email': tools.email_split(lead.email_from) and tools.email_split(lead.email_from)[0] or False,
-            'fax': lead.fax,
-            'title': lead.title and lead.title.id or False,
-            'function': lead.function,
-            'street': lead.street,
-            'street2': lead.street2,
-            'zip': lead.zip,
-            'city': lead.city,
-            'country_id': lead.country_id and lead.country_id.id or False,
-            'state_id': lead.state_id and lead.state_id.id or False,
-            'is_company': is_company,
-            'type': 'contact'
-        }
+        if type(name) == dict:
+            vals = {'name': name['first_name'] or '',
+                'last_name': name['last_name'] or '',
+                'user_id': lead.user_id.id,
+                'comment': lead.description,
+                'section_id': lead.section_id.id or False,
+                'parent_id': parent_id,
+                'phone': lead.phone,
+                'mobile': lead.mobile,
+                'email': tools.email_split(lead.email_from) and tools.email_split(lead.email_from)[0] or False,
+                'fax': lead.fax,
+                'title': lead.title and lead.title.id or False,
+                'function': lead.function,
+                'street': lead.street,
+                'street2': lead.street2,
+                'zip': lead.zip,
+                'city': lead.city,
+                'country_id': lead.country_id and lead.country_id.id or False,
+                'state_id': lead.state_id and lead.state_id.id or False,
+                'is_company': is_company,
+                'type': 'contact'
+            }
+        else:
+            vals = {'name': name,
+                'user_id': lead.user_id.id,
+                'comment': lead.description,
+                'section_id': lead.section_id.id or False,
+                'parent_id': parent_id,
+                'phone': lead.phone,
+                'mobile': lead.mobile,
+                'email': tools.email_split(lead.email_from) and tools.email_split(lead.email_from)[0] or False,
+                'fax': lead.fax,
+                'title': lead.title and lead.title.id or False,
+                'function': lead.function,
+                'street': lead.street,
+                'street2': lead.street2,
+                'zip': lead.zip,
+                'city': lead.city,
+                'country_id': lead.country_id and lead.country_id.id or False,
+                'state_id': lead.state_id and lead.state_id.id or False,
+                'is_company': is_company,
+                'type': 'contact'
+            }
         partner = partner.create(cr, uid, vals, context=context)
         return partner
 
@@ -80,14 +102,17 @@ class crm_lead(osv.osv):
         partner_id = False
         if lead.partner_name and lead.contact_name:
             partner_id = self._lead_create_contact(cr, uid, lead, lead.partner_name, True, context=context)
-            partner_id = self._lead_create_contact(cr, uid, lead, lead.contact_name, False, partner_id, last_name=lead.contact_last_name, context=context)
+            full_name = {'first_name': lead.contact_name, 'last_name': lead.contact_last_name or ''}
+            partner_id = self._lead_create_contact(cr, uid, lead, full_name, False, partner_id, context=context)
         elif lead.partner_name and not lead.contact_name:
             partner_id = self._lead_create_contact(cr, uid, lead, lead.partner_name, True, context=context)
         elif not lead.partner_name and lead.contact_name:
-            partner_id = self._lead_create_contact(cr, uid, lead, lead.contact_name, False, last_name=lead.contact_last_name,context=context)
+            full_name = {'first_name': lead.contact_name, 'last_name': lead.contact_last_name or ''}
+            partner_id = self._lead_create_contact(cr, uid, lead, full_name, False, context=context)
         elif lead.email_from and self.pool.get('res.partner')._parse_partner_name(lead.email_from, context=context)[0]:
             contact_name = self.pool.get('res.partner')._parse_partner_name(lead.email_from, context=context)[0]
-            partner_id = self._lead_create_contact(cr, uid, lead, contact_name, False, context=context)
+            full_name = {'first_name': lead.contact_name, 'last_name': ''}
+            partner_id = self._lead_create_contact(cr, uid, lead, full_name, False, context=context)
         else:
             raise osv.except_osv(
                 _('Warning!'),

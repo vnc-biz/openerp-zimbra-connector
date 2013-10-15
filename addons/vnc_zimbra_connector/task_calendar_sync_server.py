@@ -3,6 +3,7 @@ from openerp.service import wsgi_server
 import xmlrpclib
 from icalendar import Calendar, Event, Todo
 import datetime as DT
+from datetime import date
 import hashlib
 import openerp
 import pytz
@@ -162,7 +163,7 @@ def make_service_call(host, port, username, pwd, dbname, option):
         for data in event_data:
             event = Event()
             if data['date_deadline'] and data['date']:
-                event.add('CREATED', DT.datetime.strptime(data['date'], '%Y-%m-%d %H:%M:%S').date())
+                event.add('CREATED', date.today())
                 event.add('DTSTART', DT.datetime.strptime(data['date'], '%Y-%m-%d %H:%M:%S').date())
                 event.add('DTEND', DT.datetime.strptime(data['date_deadline'], '%Y-%m-%d %H:%M:%S').date())
             if data['write_date']:

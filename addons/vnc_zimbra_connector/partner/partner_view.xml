@@ -39,7 +39,7 @@
                 <xpath expr="/kanban/templates/t/div/div/h4/a[@type='open']" position="replace">
                     <a type="open">
                     <field name="name" />
-                    <field name="last_name"/>
+<!--                     <field name="last_name"/> -->
                     </a>
                 </xpath>
             </field>
@@ -69,7 +69,7 @@
                     <field name="last_name"/>
                 </xpath>
                 <xpath expr="/form/sheet/notebook/page/field/kanban/templates/t/div/div/div/div/table/tr/td/h4" position="replace" >
-                    <h4><a type="open"><field name="name"/><field name="last_name"/></a></h4>                    
+                    <h4><a type="open"><field name="name"/> <field name="last_name"/></a></h4>                    
                 </xpath>
             </field>
             </record>

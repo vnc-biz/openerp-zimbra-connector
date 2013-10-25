@@ -167,8 +167,8 @@ def make_service_call(host, port, username, pwd, dbname, option):
                 event.add('DTSTART', DT.datetime.strptime(data['date'], '%Y-%m-%d %H:%M:%S').date())
                 event.add('DTEND', DT.datetime.strptime(data['date_deadline'], '%Y-%m-%d %H:%M:%S').date())
             if data['write_date']:
-                event.add('DTSTAMP', DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S').date())
-                event.add('LAST-MODIFIED', DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S').date())
+                event.add('DTSTAMP', DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S'))
+                event.add('LAST-MODIFIED', DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S'))
             if data['allday']:
                 event.add('X-MICROSOFT-CDO-ALLDAYEVENT', 'TRUE')
             else:

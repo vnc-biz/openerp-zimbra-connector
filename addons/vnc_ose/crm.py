@@ -53,7 +53,9 @@ class crm_lead(osv.osv):
     def _lead_create_contact(self, cr, uid, lead, name, is_company, parent_id=False, context=None):
         partner = self.pool.get('res.partner')
         if type(name) == dict:
-            vals = {'name': name['first_name'] or '',
+            full_name = name['first_name'] or '' + ' ' + name['last_name'] or '' 
+            vals = {'name': full_name,
+                'first_name': name['first_name'] or '',
                 'last_name': name['last_name'] or '',
                 'user_id': lead.user_id.id,
                 'comment': lead.description,

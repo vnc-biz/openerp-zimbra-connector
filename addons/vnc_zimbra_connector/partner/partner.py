@@ -671,6 +671,8 @@ crm_meeting()
 class res_partner(osv.osv):
     _inherit='res.partner'
     _columns={
+              'name': fields.char('Name', size=128),
+              'first_name':fields.char('First Name',size=128),
               'middle_name':fields.char('Middle Name',size=128),
               'last_name':fields.char('Last Name',size=128),
               }
@@ -735,10 +737,10 @@ class res_partner(osv.osv):
                                        'last_sync':time.strftime('%Y-%m-%d %H:%M:%S'),
                                        'delete_items':'',
                                        })
-            datas = self.export_data(cr,uid,partner_ids,['id','name','middle_name','last_name','city','street','street2','zip','phone','fax','email','mobile','parent_id','title','country_id'])
+            datas = self.export_data(cr,uid,partner_ids,['id','name','first_name','middle_name','last_name','city','street','street2','zip','phone','fax','email','mobile','parent_id','title','country_id'])
         else:
             partner_id = self.search(cr, uid, [('email','!=',False)])
-            datas = self.export_data(cr,uid,partner_id,['id','name','middle_name','last_name','city','street','street2','zip','phone','fax','email','mobile','parent_id','title','country_id'])
+            datas = self.export_data(cr,uid,partner_id,['id','name','first_name','middle_name','last_name','city','street','street2','zip','phone','fax','email','mobile','parent_id','title','country_id'])
             zimbra_contactsync_pool.create(cr, uid, {
                                        'zimbra_uid':zuid,
                                        'addbook_id':addbookid,
@@ -756,6 +758,19 @@ class res_partner(osv.osv):
                 data_write = read_data
             self.pool.get('zimbra.contactsync.log').write(cr, uid, zcs.id, {'delete_items':data_write})
         return super(res_partner, self).unlink(cr, uid, ids, context=context)
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('is_company') != True:
+            if vals.get('first_name') or vals.get('middle_name') or vals.get('last_name'):
+                vals['name'] = vals.get('first_name') or "" + ' '+  vals.get('middle_name') or "" + ' '+ vals.get('last_name') or ""
+        return super(res_partner, self).create(cr, uid, vals, context=context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if vals.get('is_company') != True:
+            if vals.get('first_name') or vals.get('middle_name') or vals.get('last_name'):
+                vals['name'] = vals.get('first_name') or "" + ' '+  vals.get('middle_name') or "" + ' '+ vals.get('last_name') or ""
+        return super(res_partner, self).write(cr, uid, ids, vals, context=context)
+
         
 res_partner()
 

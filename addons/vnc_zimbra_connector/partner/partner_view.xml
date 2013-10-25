@@ -1,18 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <openerp>
     <data>
-        <record id="view_partner_tree_zimbra" model="ir.ui.view">
-            <field name="name">res.partner.tree.zimbra</field>
-            <field name="model">res.partner</field>
-            <field name="inherit_id" ref="base.view_partner_tree"/>
-            <field name="arch" type="xml">
-                    <field name="name" position="replace">
-                     <field name="name" string="First Name"/>
-                    <field name="last_name" />
-                    </field>
-            </field>
-        </record>
-        
         <record id="view_res_partner_filter_zimbra" model="ir.ui.view">
             <field name="name">res.partner.select.zimbra</field>
             <field name="model">res.partner</field>
@@ -28,23 +16,6 @@
             </field>
         </record>
         
-        <record model="ir.ui.view" id="res_partner_kanban_view_zimbra">
-            <field name="name">res.partner.kanban.zimbra</field>
-            <field name="model">res.partner</field>
-            <field name="inherit_id" ref="base.res_partner_kanban_view" />
-            <field name="arch" type="xml">
-                <field name="name" position="after">
-                <field name="last_name"/>
-                </field>
-                <xpath expr="/kanban/templates/t/div/div/h4/a[@type='open']" position="replace">
-                    <a type="open">
-                    <field name="name" />
-<!--                     <field name="last_name"/> -->
-                    </a>
-                </xpath>
-            </field>
-            </record>
-        
         <record id="view_partner_form_zimbra" model="ir.ui.view">
             <field name="name">view.partner.form.zimbra</field>
             <field name="model">res.partner</field>
@@ -52,24 +23,27 @@
             <field name="arch" type="xml">
                 <xpath expr="/form/sheet/div/h1" position="replace">
                     <h2>
-                    <field name="name" default_focus="1" placeholder="First Name" style="width: auto;max-width: 35%%"/>
+                    <field name="name" default_focus="1" placeholder="Name" style="width: auto;max-width: 35%%" attrs="{'invisible':[('is_company','!=',True)], 'required':[('is_company','=', True)]}"/>
+                    <field name="first_name" default_focus="1" placeholder="First Name" style="width: auto;max-width: 35%%" attrs="{'invisible':[('is_company','=',True)], 'required':[('is_company','!=', True)]}"/>
                     <field name="middle_name" placeholder="Middle Name" style="width: auto;max-width: 32%%" attrs="{'invisible':[('is_company','=',True)]}"/>
-                    <field name="last_name" placeholder="Lastt Name" style="width: 31%%" attrs="{'invisible':[('is_company','=',True)]}"/>
+                    <field name="last_name" placeholder="Last Name" style="width: 31%%" attrs="{'invisible':[('is_company','=',True)]}"/>
                     </h2>
                 </xpath>
                 <xpath expr="/form/sheet/notebook/page/field/form/sheet/div/h1" position="replace">
                     <h2>
-                    <field name="name" style="width: auto;max-width: 35%%" placeholder="First Name"/>
-                    <field name="middle_name" style="width: auto;max-width: 32%%" placeholder="Middle Name"/>
-                    <field name="last_name" style="width: 31%%" placeholder="Last Name"/>
+                    <field name="is_company" invisible="1"/>
+                    <field name="name" style="width: auto;max-width: 35%%" placeholder="Name" attrs="{'invisible':[('is_company','!=',True)]}"/>
+                    <field name="first_name" style="width: auto;max-width: 35%%" placeholder="First Name" attrs="{'invisible':[('is_company','=',True)]}"/>
+                    <field name="middle_name" style="width: auto;max-width: 32%%" placeholder="Middle Name" attrs="{'invisible':[('is_company','=',True)]}"/>
+                    <field name="last_name" style="width: 31%%" placeholder="Last Name" attrs="{'invisible':[('is_company','=',True)]}"/>
                     </h2>
                 </xpath>
-                <xpath expr="/form/sheet/notebook/page/field/kanban/field[@name='name']" position="after" >
-                    <field name="middle_name"/>
-                    <field name="last_name"/>
-                </xpath>
-                <xpath expr="/form/sheet/notebook/page/field/kanban/templates/t/div/div/div/div/table/tr/td/h4" position="replace" >
-                    <h4><a type="open"><field name="name"/> <field name="last_name"/></a></h4>                    
+                <xpath expr="/form/sheet/notebook/page/field/kanban/field[@name='name']" position="replace" >
+                	<field name="is_company" invisible="1"/>
+                	<field name="name" attrs="{'invisible':[('is_company','!=',True)]}"/>
+                    <field name="first_name" attrs="{'invisible':[('is_company','=',True)]}"/>
+                    <field name="middle_name" attrs="{'invisible':[('is_company','=',True)]}"/>
+                    <field name="last_name" attrs="{'invisible':[('is_company','=',True)]}"/>
                 </xpath>
             </field>
             </record>

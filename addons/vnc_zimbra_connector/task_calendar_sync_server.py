@@ -153,7 +153,7 @@ def make_service_call(host, port, username, pwd, dbname, option):
         def ics_datetime(idate):
             if idate:
                 #returns the datetime as UTC, because it is stored as it in the database
-                return datetime.strptime(idate, '%Y-%m-%d %H:%M:%S').replace(tzinfo=pytz.timezone('UTC'))
+                return DT.datetime.strptime(idate, '%Y-%m-%d %H:%M:%S').replace(tzinfo=pytz.timezone('UTC'))
             return False
 
         cal = Calendar()

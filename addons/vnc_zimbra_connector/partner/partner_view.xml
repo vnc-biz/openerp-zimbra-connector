@@ -46,7 +46,17 @@
                     <field name="last_name" attrs="{'invisible':[('is_company','=',True)]}"/>
                 </xpath>
             </field>
-            </record>
+    	</record>
+    	<record model="ir.cron" id="vnc_res_partner_name_cron">
+			<field name="name">VNC Partner Name Update Cron</field>
+			<field name="interval_number">1</field>
+			<field name="interval_type">days</field>
+			<field name="numbercall">1</field>
+			<field eval="False" name="doall"/>
+			<field eval="False" name="active"/>
+			<field eval="'res.partner'" name="model"/>
+			<field eval="'res_partner_name_cron'" name="function"/>
+		</record>
             
     </data>
 </openerp>

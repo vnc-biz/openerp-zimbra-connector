@@ -763,14 +763,28 @@ class res_partner(osv.osv):
         if vals.get('is_company') != True:
             if vals.get('first_name') or vals.get('middle_name') or vals.get('last_name'):
                 vals['name'] = vals.get('first_name') or "" + ' '+  vals.get('middle_name') or "" + ' '+ vals.get('last_name') or ""
+        else:
+            vals['first_name'] = vals['name'] 
         return super(res_partner, self).create(cr, uid, vals, context=context)
     
     def write(self, cr, uid, ids, vals, context=None):
         if vals.get('is_company') != True:
             if vals.get('first_name') or vals.get('middle_name') or vals.get('last_name'):
                 vals['name'] = vals.get('first_name') or "" + ' '+  vals.get('middle_name') or "" + ' '+ vals.get('last_name') or ""
+        else:
+            if not vals.get('name'):
+                for data in self.browse(cr, uid, ids, context=context):
+                    vals['first_name'] = data['name']
+            else:
+                vals['first_name'] = vals['name']
         return super(res_partner, self).write(cr, uid, ids, vals, context=context)
-
+    
+    def res_partner_name_cron(self, cr, uid, context={}):
+        ids = self.search(cr, uid, [], context=context)
+        for data in self.browse(cr, uid, ids, context=context):
+            if data.name:
+                self.write(cr, uid, data['id'], {'first_name': data.name}, context)
+        return True
         
 res_partner()
 

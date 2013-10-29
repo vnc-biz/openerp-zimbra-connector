@@ -78,6 +78,7 @@ class crm_lead(osv.osv):
             }
         else:
             vals = {'name': name,
+                'first_name': name,
                 'user_id': lead.user_id.id,
                 'comment': lead.description,
                 'section_id': lead.section_id.id or False,

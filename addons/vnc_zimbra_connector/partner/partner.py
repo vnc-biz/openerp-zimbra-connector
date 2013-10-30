@@ -768,9 +768,26 @@ class res_partner(osv.osv):
         return super(res_partner, self).create(cr, uid, vals, context=context)
     
     def write(self, cr, uid, ids, vals, context=None):
+        f_name = ''
+        m_name = ''
+        l_name = ''
         if vals.get('is_company') != True:
-            if vals.get('first_name') or vals.get('middle_name') or vals.get('last_name'):
-                vals['name'] = vals.get('first_name') or "" + ' '+  vals.get('middle_name') or "" + ' '+ vals.get('last_name') or ""
+            if not vals.get('first_name'):
+                for data in self.browse(cr, uid, ids, context=context):
+                    f_name = data['first_name']
+            else:
+                f_name = vals.get('first_name')
+            if not vals.get('middle_name'):
+                for data in self.browse(cr, uid, ids, context=context):
+                    m_name = data['middle_name']
+            else:
+                m_name = vals.get('middle_name')
+            if not vals.get('last_name'):
+                for data in self.browse(cr, uid, ids, context=context):
+                    l_name = data['last_name']
+            else:
+                l_name = vals.get('last_name')
+            vals['name'] = f_name or "" + ' '+  m_name or "" + ' '+ l_name or ""
         else:
             if not vals.get('name'):
                 for data in self.browse(cr, uid, ids, context=context):

@@ -38,13 +38,6 @@
                     <field name="last_name" style="width: 31%%" placeholder="Last Name" attrs="{'invisible':[('is_company','=',True)]}"/>
                     </h2>
                 </xpath>
-                <xpath expr="/form/sheet/notebook/page/field/kanban/field[@name='name']" position="replace" >
-                	<field name="is_company" invisible="1"/>
-                	<field name="name" attrs="{'invisible':[('is_company','!=',True)]}"/>
-                    <field name="first_name" attrs="{'invisible':[('is_company','=',True)]}"/>
-                    <field name="middle_name" attrs="{'invisible':[('is_company','=',True)]}"/>
-                    <field name="last_name" attrs="{'invisible':[('is_company','=',True)]}"/>
-                </xpath>
             </field>
     	</record>
     	<record model="ir.cron" id="vnc_res_partner_name_cron">

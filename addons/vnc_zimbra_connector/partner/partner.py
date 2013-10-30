@@ -737,10 +737,10 @@ class res_partner(osv.osv):
                                        'last_sync':time.strftime('%Y-%m-%d %H:%M:%S'),
                                        'delete_items':'',
                                        })
-            datas = self.export_data(cr,uid,partner_ids,['id','name','first_name','middle_name','last_name','city','street','street2','zip','phone','fax','email','mobile','parent_id','title','country_id'])
+            datas = self.export_data(cr,uid,partner_ids,['id','first_name','middle_name','last_name','city','street','street2','zip','phone','fax','email','mobile','parent_id','title','country_id'])
         else:
             partner_id = self.search(cr, uid, [('email','!=',False)])
-            datas = self.export_data(cr,uid,partner_id,['id','name','first_name','middle_name','last_name','city','street','street2','zip','phone','fax','email','mobile','parent_id','title','country_id'])
+            datas = self.export_data(cr,uid,partner_id,['id','first_name','middle_name','last_name','city','street','street2','zip','phone','fax','email','mobile','parent_id','title','country_id'])
             zimbra_contactsync_pool.create(cr, uid, {
                                        'zimbra_uid':zuid,
                                        'addbook_id':addbookid,
@@ -771,29 +771,21 @@ class res_partner(osv.osv):
         f_name = ''
         m_name = ''
         l_name = ''
-        if vals.get('is_company') != True:
-            if not vals.get('first_name'):
-                for data in self.browse(cr, uid, ids, context=context):
-                    f_name = data['first_name']
+        if not type(ids) is list:
+            ids = [ids]
+        for data in self.browse(cr, uid, ids):
+            if not vals.get('is_company'):
+                if vals.get('first_name') or vals.get('middle_name') or vals.get('last_name'):
+                    f_name = vals.get('first_name') or  data['first_name'] or ''
+                    m_name = vals.get('middle_name') or data['middle_name'] or ''
+                    l_name = vals.get('last_name') or data['last_name'] or ''
+                    vals['name'] = (f_name or "") + ' '+  (m_name or "")+ ' '+ (l_name or "")
             else:
-                f_name = vals.get('first_name')
-            if not vals.get('middle_name'):
-                for data in self.browse(cr, uid, ids, context=context):
-                    m_name = data['middle_name']
-            else:
-                m_name = vals.get('middle_name')
-            if not vals.get('last_name'):
-                for data in self.browse(cr, uid, ids, context=context):
-                    l_name = data['last_name']
-            else:
-                l_name = vals.get('last_name')
-            vals['name'] = f_name or "" + ' '+  m_name or "" + ' '+ l_name or ""
-        else:
-            if not vals.get('name'):
-                for data in self.browse(cr, uid, ids, context=context):
-                    vals['first_name'] = data['name']
-            else:
-                vals['first_name'] = vals['name']
+                if not vals.get('name'):
+                    for data in self.browse(cr, uid, ids):
+                        vals['first_name'] = data['name']
+                else:
+                    vals['first_name'] = vals['name']
         return super(res_partner, self).write(cr, uid, ids, vals, context=context)
     
     def res_partner_name_cron(self, cr, uid, context={}):

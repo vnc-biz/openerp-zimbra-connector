@@ -164,8 +164,8 @@ def make_service_call(host, port, username, pwd, dbname, option):
             event = Event()
             if data['date_deadline'] and data['date']:
                 event.add('CREATED', date.today())
-                event.add('DTSTART', DT.datetime.strptime(data['date'], '%Y-%m-%d %H:%M:%S').date())
-                event.add('DTEND', DT.datetime.strptime(data['date_deadline'], '%Y-%m-%d %H:%M:%S').date())
+                event.add('DTSTART', DT.datetime.strptime(data['date'], '%Y-%m-%d %H:%M:%S'))
+                event.add('DTEND', DT.datetime.strptime(data['date_deadline'], '%Y-%m-%d %H:%M:%S'))
             if data['write_date']:
                 event.add('DTSTAMP', DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S'))
                 event.add('LAST-MODIFIED', DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S'))

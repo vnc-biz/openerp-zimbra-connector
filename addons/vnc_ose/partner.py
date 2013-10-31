@@ -80,14 +80,3 @@ def search_read(self, cr, uid, domain, fields=[], context={}):
     return read_data
 
 osv.osv.search_read = search_read
-
-def res_partner_name_cron(self, cr, uid, context={}):
-    res_partner_pool = self.pool.get('res.partner')
-    ids = self.search(cr, uid, [], context=context)
-
-    for data in self.browse(cr, uid, ids, context=context):
-        if data.name:
-            self.write(cr, uid, data['id'], {'first_name': data.name}, context)
-    return True
-
-osv.osv.res_partner_name_cron = res_partner_name_cron

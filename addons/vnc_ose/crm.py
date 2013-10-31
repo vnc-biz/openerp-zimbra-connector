@@ -37,14 +37,14 @@ class crm_lead(osv.osv):
                 values.update({'lead_add_line': lead_addrs,'partner_address_id': partner.child_ids and partner.child_ids[0].id or False})
             if partner.parent_id:
                 values.update({'partner_name' : partner.parent_id.name, 
-                               'contact_name' : partner.name,
+                               'contact_name' : partner.first_name,
                                'contact_last_name' : partner.last_name,
                                'function' : partner.function,
                               });
                 
             else:
                 values.update({'partner_name' : False, 
-                              'contact_name' : partner.name,
+                              'contact_name' : partner.first_name,
                                 'contact_last_name' : partner.last_name,
                                'function' : False,
                                });
@@ -54,8 +54,8 @@ class crm_lead(osv.osv):
         
         partner = self.pool.get('res.partner')
         if type(name) == dict:
-            full_name = name['first_name'] or '' + ' ' + name['last_name'] or '' 
-            vals = {'name': full_name,
+#             full_name = name['first_name'] or '' + ' ' + name['last_name'] or '' 
+            vals = {
                 'first_name': name['first_name'] or '',
                 'last_name': name['last_name'] or '',
                 'user_id': lead.user_id.id,

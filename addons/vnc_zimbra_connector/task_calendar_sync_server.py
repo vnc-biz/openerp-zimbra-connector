@@ -162,17 +162,17 @@ def make_service_call(host, port, username, pwd, dbname, option):
         cal.add('METHOD', 'PUBLISH')
         for data in event_data:
             event = Event()
-            if data['date_deadline'] and data['date']:
+            if data['date_deadline'] and data['date'] and data['allday']:
                 event.add('CREATED', date.today())
+                event.add('DTSTART', DT.datetime.strptime(data['date'], '%Y-%m-%d %H:%M:%S').date())
+                event.add('DTEND', DT.datetime.strptime(data['date_deadline'], '%Y-%m-%d %H:%M:%S').date())
+            else:
                 event.add('DTSTART', DT.datetime.strptime(data['date'], '%Y-%m-%d %H:%M:%S'))
                 event.add('DTEND', DT.datetime.strptime(data['date_deadline'], '%Y-%m-%d %H:%M:%S'))
+                event.add('X-MICROSOFT-CDO-ALLDAYEVENT', 'FALSE')
             if data['write_date']:
                 event.add('DTSTAMP', DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S'))
                 event.add('LAST-MODIFIED', DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S'))
-            if data['allday']:
-                event.add('X-MICROSOFT-CDO-ALLDAYEVENT', 'TRUE')
-            else:
-                event.add('X-MICROSOFT-CDO-ALLDAYEVENT', 'FALSE')
             if data['show_as']:
                 event.add('X-MICROSOFT-CDO-INTENDEDSTATUS', data['show_as'])
             event.add('UID', uid_generat('crmCalendar'+str(data['id'])))

@@ -167,6 +167,7 @@ def make_service_call(host, port, username, pwd, dbname, option):
                 event.add('DTSTART', DT.datetime.strptime(data['date'], '%Y-%m-%d %H:%M:%S').date())
                 event.add('DTEND', DT.datetime.strptime(data['date_deadline'], '%Y-%m-%d %H:%M:%S').date())
             else:
+                event.add('CREATED', date.today())
                 event.add('DTSTART', DT.datetime.strptime(data['date'], '%Y-%m-%d %H:%M:%S'))
                 event.add('DTEND', DT.datetime.strptime(data['date_deadline'], '%Y-%m-%d %H:%M:%S'))
                 event.add('X-MICROSOFT-CDO-ALLDAYEVENT', 'FALSE')

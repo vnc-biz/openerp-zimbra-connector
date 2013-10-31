@@ -162,15 +162,15 @@ def make_service_call(host, port, username, pwd, dbname, option):
         cal.add('METHOD', 'PUBLISH')
         for data in event_data:
             event = Event()
-            if data['date_deadline'] and data['date'] and data['allday']:
+            if data['date_deadline'] and data['date'] and data['allday']:                
                 event.add('CREATED', date.today())
-                event.add('DTSTART', DT.datetime.strptime(data['date'], '%Y-%m-%d %H:%M:%S').date())
-                event.add('DTEND', DT.datetime.strptime(data['date_deadline'], '%Y-%m-%d %H:%M:%S').date())
+                event.add('DTSTART', ics_datetime(data['date']))
+                event.add('DTEND', ics_datetime(data['date_deadline']))
                 event.add('X-MICROSOFT-CDO-ALLDAYEVENT', 'TRUE')
             else:
                 event.add('CREATED', date.today())
-                event.add('DTSTART', DT.datetime.strptime(data['date'], '%Y-%m-%d %H:%M:%S'))
-                event.add('DTEND', DT.datetime.strptime(data['date_deadline'], '%Y-%m-%d %H:%M:%S'))
+                event.add('DTSTART', ics_datetime(data['date']))
+                event.add('DTEND', ics_datetime(data['date_deadline']))
                 event.add('X-MICROSOFT-CDO-ALLDAYEVENT', 'FALSE')
             if data['write_date']:
                 event.add('DTSTAMP', DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S'))

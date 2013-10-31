@@ -35,7 +35,7 @@
                     <field name="first_name" on_change="onchange_fml_name( first_name, middle_name,last_name )" style="width: auto;max-width: 35%%" placeholder="First Name" attrs="{'invisible':[('is_company','=',True)]}"/>
                     <field name="middle_name" on_change="onchange_fml_name( first_name, middle_name,last_name )" style="width: auto;max-width: 32%%" placeholder="Middle Name" attrs="{'invisible':[('is_company','=',True)]}"/>
                     <field name="last_name" on_change="onchange_fml_name( first_name, middle_name,last_name )" style="width: 31%%" placeholder="Last Name" attrs="{'invisible':[('is_company','=',True)]}"/>
-                    <field name="name" style="width: auto;max-width: 35%%" placeholder="Name" />
+                    <field name="name" style="width: auto;max-width: 35%%" placeholder="Name" attrs="{'invisible':[('is_company','=',True)]}"/>
                     </h2>
                 </xpath>
             </field>

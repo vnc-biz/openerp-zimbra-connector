@@ -15,6 +15,12 @@ import time
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
 import ast
 
+import markdown
+import smartypants
+import sys
+import re
+import codecs
+
 class email_server_tools(osv.osv_memory):
     _name = "email.server.tools"
 
@@ -143,8 +149,31 @@ class email_server_tools(osv.osv_memory):
 
         if not msg_txt.is_multipart() or 'text/plain' in msg.get('Content-Type', ''):
             encoding = msg_txt.get_content_charset()
-            body = msg_txt.get_payload(decode=True)
-            msg['body'] = tools.ustr(body, encoding)
+            content = msg_txt.get_payload(decode=True)
+            html_header = u"""
+            <html>
+            <body>
+            """
+            html_footer = u"""</body>
+            </html>
+            """
+            original_txt = content
+            # catch any mis-typed en dashes
+            converted_txt = original_txt.replace(" - ", " -- ")
+            converted_txt = smartypants.educateQuotes(converted_txt)
+            converted_txt = smartypants.educateEllipses(converted_txt)
+            converted_txt = smartypants.educateDashesOldSchool(converted_txt)
+            # normalise line endings and insert blank line between paragraphs for Markdown
+            converted_txt = re.sub("\r\n", "\n", converted_txt)
+            converted_txt = re.sub("\n\n+", "\n", converted_txt)
+            converted_txt = re.sub("\n", "\n\n", converted_txt)
+            converted_txt = unicode( converted_txt, "utf8" )
+             
+            html = markdown.markdown(converted_txt)
+            html_out = html_header + html + html_footer
+             
+            body = html_out
+            msg['body'] = body
 
         attachments = {}
         has_plain_text = False
@@ -153,7 +182,6 @@ class email_server_tools(osv.osv_memory):
             for part in msg_txt.walk():
                 if part.get_content_maintype() == 'multipart':
                     continue
-
                 encoding = part.get_content_charset()
                 filename = part.get_filename()
                 if part.get_content_maintype()=='text':
@@ -167,17 +195,17 @@ class email_server_tools(osv.osv_memory):
                         # because presumably these are alternatives.
                         content = tools.ustr(content, encoding)
                         if part.get_content_subtype() == 'html':
-                            body = tools.ustr(tools.html2plaintext(content))
-                        elif part.get_content_subtype() == 'plain':
+#                             body = tools.ustr(tools.html2plaintext(content))
                             body = content
                             has_plain_text = True
+                        elif part.get_content_subtype() == 'plain':
+                            body = content
                 elif part.get_content_maintype() in ('application', 'image', 'audio', 'video'):
                     if filename :
                         attachments[filename] = part.get_payload(decode=True)
                     else:
                         res = part.get_payload(decode=True)
                         body += tools.ustr(res, encoding)
-
             msg['body'] = body
             msg['attachments'] = attachments
         return msg

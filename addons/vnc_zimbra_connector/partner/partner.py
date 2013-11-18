@@ -199,7 +199,29 @@ class email_server_tools(osv.osv_memory):
                             body = content
                             has_plain_text = True
                         elif part.get_content_subtype() == 'plain':
-                            body = content
+                            html_header = u"""
+                            <html>
+                            <body>
+                            """
+                            html_footer = u"""</body>
+                            </html>
+                            """
+                            original_txt = content
+                            # catch any mis-typed en dashes
+                            converted_txt = original_txt.replace(" - ", " -- ")
+                            converted_txt = smartypants.educateQuotes(converted_txt)
+                            converted_txt = smartypants.educateEllipses(converted_txt)
+                            converted_txt = smartypants.educateDashesOldSchool(converted_txt)
+                            # normalise line endings and insert blank line between paragraphs for Markdown
+                            converted_txt = re.sub("\r\n", "\n", converted_txt)
+                            converted_txt = re.sub("\n\n+", "\n", converted_txt)
+                            converted_txt = re.sub("\n", "\n\n", converted_txt)
+#                             converted_txt = unicode( converted_txt, "utf8" )
+                            html = markdown.markdown(converted_txt)
+                            html_out = html_header + html + html_footer
+                             
+                            body = html_out
+                            msg['body'] = body
                 elif part.get_content_maintype() in ('application', 'image', 'audio', 'video'):
                     if filename :
                         attachments[filename] = part.get_payload(decode=True)

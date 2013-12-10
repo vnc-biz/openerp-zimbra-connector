@@ -108,6 +108,13 @@ def make_service_call(host, port, username, pwd, dbname, option):
         task_ids = sock.execute(dbname, uid, pwd, 'crm.task', 'search', [('task_type', '=', 't'), ('user_id', '=', uid)])
         task_data = sock.execute(dbname, uid, pwd, 'crm.task', 'read', task_ids,['name','description','date','date_deadline','priority','state','location','write_date'])
         
+        def ics_datetime(idate):
+            if idate:
+                #returns the datetime as UTC, because it is stored as it in the database
+                idate = idate.split('.', 1)[0]
+                return DT.datetime.strptime(idate, '%Y-%m-%d %H:%M:%S').replace(tzinfo=pytz.timezone('UTC'))
+            return False
+        
         cal = Calendar()
         cal.add('PRODID', 'Zimbra-Calendar-Provider')
         cal.add('VERSION', '2.0')
@@ -118,9 +125,13 @@ def make_service_call(host, port, username, pwd, dbname, option):
             todo.add('summary', data['name'])
             todo.add('description', data['description'])
             if data['date']:
-                todo.add('DTSTART', DT.datetime.strptime(data['date'], '%Y-%m-%d %H:%M:%S').date())
+                todo.add('DTSTART', ics_datetime(data['date']))
+            else:
+                todo.add('DTSTART', ics_datetime(data['date_deadline']))
             if data['date_deadline']:
-                todo.add('DUE', DT.datetime.strptime(data['date_deadline'], '%Y-%m-%d %H:%M:%S').date())
+                todo.add('DUE', ics_datetime(data['date_deadline']))
+            else:
+                todo.add('DUE', ics_datetime(data['date']))
             if data['write_date']:
                 todo.add('DTSTAMP', DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S'))
                 todo.add('LAST-MODIFIED', DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S'))
@@ -149,7 +160,6 @@ def make_service_call(host, port, username, pwd, dbname, option):
     else:
         event_ids = sock.execute(dbname, uid, pwd, 'calendar.event', 'search', [('user_id','=',uid)])
         event_data = sock.execute(dbname, uid, pwd, 'calendar.event', 'read', event_ids,['show_as','allday','name','description','date','date_deadline','location','write_date'])
-        
         def ics_datetime(idate):
             if idate:
                 #returns the datetime as UTC, because it is stored as it in the database

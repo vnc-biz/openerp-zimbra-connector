@@ -23,5 +23,15 @@
 				</notebook>
 			</field>
 		</record>
+		
+		<!-- Calendar Meeting menu -->
+		<menuitem name="Calendar Meeting"
+        id="base_calendar.mail_menu_calendar" parent="mail.mail_my_stuff"
+        sequence="10" action="base_calendar.action_crm_meeting"/>
+        
+        <!-- Calendar Event menu -->
+        <menuitem id="menu_events_mails"
+                name="Calendar Events" parent="mail.mail_my_stuff"
+                sequence="11" action="base_calendar.action_view_event"/>
 	</data>
 </openerp>

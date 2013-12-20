@@ -279,7 +279,7 @@ class zimbra_partner(osv.osv_memory):
         msg_ids = []
         res = {}
         res_ids = []
-        obj_list= ['crm.lead','project.issue','hr.applicant','res.partner']
+        obj_list= ['crm.lead','project.issue','hr.applicant','res.partner','project.project']
         for ref_id in ref_ids:
             msg_new = dictcreate.get('message')
             ref = ref_id.split(',')

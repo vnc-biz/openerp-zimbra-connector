@@ -24,7 +24,7 @@
         'partner/partner_view.xml'
     ],
     'js':[
-#           'static/src/js/vnc_zimbra_connector.js',
+        'static/src/js/vnc_zimbra_connector.js',
           ],
     'qweb': [
              'static/src/xml/vnc_zimbra_connector.xml',

@@ -4,11 +4,8 @@ openerp.vnc_zimbra_connector = function (session) {
     
 	session.mail.MessageCommon.include({
         init: function (parent, datasets, options) {
-        	console.log('inside my inirttttttttttttttttttttttttttttt');
-        	console.log(options);
-        	
         	var self = this;
-            this._super.apply(parent, options);
+            this._super(parent, datasets, options);
             // record options
             
             this.options = datasets.options || options || {};

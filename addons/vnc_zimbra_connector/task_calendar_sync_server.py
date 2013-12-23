@@ -158,8 +158,8 @@ def make_service_call(host, port, username, pwd, dbname, option):
             cal.add_component(todo)
         return cal.to_ical()
     else:
-        event_ids = sock.execute(dbname, uid, pwd, 'calendar.event', 'search', [('user_id','=',uid)])
-        event_data = sock.execute(dbname, uid, pwd, 'calendar.event', 'read', event_ids,['show_as','allday','name','description','date','date_deadline','location','write_date'])
+        event_ids = sock.execute(dbname, uid, pwd, 'crm.meeting', 'search', [('user_id','=',uid)])
+        event_data = sock.execute(dbname, uid, pwd, 'crm.meeting', 'read', event_ids,['show_as','allday','name','description','date','date_deadline','location','write_date'])
         def ics_datetime(idate):
             if idate:
                 #returns the datetime as UTC, because it is stored as it in the database

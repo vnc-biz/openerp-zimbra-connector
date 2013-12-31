@@ -725,7 +725,21 @@ class res_partner(osv.osv):
               'first_name':fields.char('First Name',size=128),
               'middle_name':fields.char('Middle Name',size=128),
               'last_name':fields.char('Last Name',size=128),
+              'zcontact_id': fields.char('Zimbra Contact ID', size=128),
               }
+    
+    def partner_sync_multi(self, cr, uid, zlistofdict=[], context={}):
+        if zlistofdict:
+            for element in zlistofdict:
+                found_ids = self.search(cr, uid, [('zcontact_id','=',element.has_key('id') and element['id'] or False)])
+                element.update({'country_id': False,'state_id': False,
+                'zcontact_id': element.has_key('id') and element['id'] or False})
+                element.pop('id',None)
+                if not found_ids:
+                    partner_id = self.create(cr, uid, element, context=context)
+                else:
+                    self.write(cr, uid, found_ids, element, context=context)
+        return True
     
     def partner_sync_openerp(self,cr, uid, zuid=False, addbookid=False, context=None):
         datas = False
@@ -736,7 +750,7 @@ class res_partner(osv.osv):
         zsync_ids = zimbra_contactsync_pool.search(cr, uid, [('zimbra_uid','=',zuid),('addbook_id','=',addbookid)])
         if zsync_ids:
             data_read = zimbra_contactsync_pool.read(cr, uid, zsync_ids[0])
-            partner_ids = self.search(cr, uid, [('write_date','>',datetime.strptime(data_read['last_sync'],'%Y-%m-%d %H:%M:%S')),('email','!=',False)])
+            partner_ids = self.search(cr, uid, [('write_date','>',datetime.strptime(data_read['last_sync'],'%Y-%m-%d %H:%M:%S')),('zcontact_id','=',False)])
             if data_read['delete_items']:
                 deleted_datas['deleted_datas'] = ast.literal_eval(data_read['delete_items'])
             zimbra_contactsync_pool.write(cr, uid, zsync_ids, {
@@ -745,7 +759,7 @@ class res_partner(osv.osv):
                                        })
             datas = self.export_data(cr,uid,partner_ids,['id','first_name','middle_name','last_name','city','street','street2','zip','phone','fax','email','mobile','parent_id','title','country_id'])
         else:
-            partner_id = self.search(cr, uid, [('email','!=',False)])
+            partner_id = self.search(cr, uid, [('zcontact_id','=',False)])
             datas = self.export_data(cr,uid,partner_id,['id','first_name','middle_name','last_name','city','street','street2','zip','phone','fax','email','mobile','parent_id','title','country_id'])
             zimbra_contactsync_pool.create(cr, uid, {
                                        'zimbra_uid':zuid,
@@ -755,7 +769,7 @@ class res_partner(osv.osv):
         return datas, deleted_datas
     
     def unlink(self, cr, uid, ids, context=None):
-        read_data = [x['email'] for x in self.read(cr, uid, ids, ['email']) if x['email']]
+        read_data = [x['id'] for x in self.read(cr, uid, ids, ['zcontact_id']) if not x['zcontact_id']]
         all_ids = self.pool.get('zimbra.contactsync.log').search(cr, uid, [])
         for zcs in self.pool.get('zimbra.contactsync.log').browse(cr, uid, all_ids):
             if zcs.delete_items:

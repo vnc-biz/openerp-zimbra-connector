@@ -36,7 +36,20 @@ class crm_lead(osv.osv):
     _columns = {
                 'lead_add_line': fields.one2many('lead.address.line', 'lead_id',
                                                  'Lead Address Line'),
+                'zimbra_msg_id': fields.char('Zimbra Messege ID',size=256),
                 }
+    
+    def create_quick_lead(self, cr, uid, vals, context={}):
+        crm_lead_pool = self.pool.get('crm.lead')
+        vals.update({'type': 'lead'})
+        if vals['zimbra_msg_id']:
+            cr.execute("select id from crm_lead where zimbra_msg_id='%s'"%(vals['zimbra_msg_id']))
+            existing_lead_ids = map(lambda x: x, cr.fetchall())
+            if not existing_lead_ids:
+                crm_id = crm_lead_pool.create(cr, uid, vals, context=context)
+                return True
+        return {'created': False}
+            
 crm_lead()
 
 class lead_address_line(osv.osv):

@@ -732,15 +732,20 @@ class res_partner(osv.osv):
         created = updated = 0
         if zlistofdict:
             for element in zlistofdict:
+                revised_element = {}
                 found_ids = self.search(cr, uid, [('zcontact_id','=',element.has_key('id') and element['id'] or False)])
                 element.update({'country_id': False,'state_id': False,
                 'zcontact_id': element.has_key('id') and element['id'] or False})
-                element.pop('id',None)
+                for key,val in element.iteritems():
+                    if val == 'False':
+                        val = False
+                    revised_element.update({key:val})
+                revised_element.pop('id',None)
                 if not found_ids:
-                    partner_id = self.create(cr, uid, element, context=context)
+                    partner_id = self.create(cr, uid, revised_element, context=context)
                     created += 1
                 else:
-                    self.write(cr, uid, found_ids, element, context=context)
+                    self.write(cr, uid, found_ids, revised_element, context=context)
                     updated += 1
         return {'created': created,'updated': updated}
     

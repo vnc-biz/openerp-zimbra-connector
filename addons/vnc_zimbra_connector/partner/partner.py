@@ -729,6 +729,7 @@ class res_partner(osv.osv):
               }
     
     def partner_sync_multi(self, cr, uid, zlistofdict=[], context={}):
+        created = updated = 0
         if zlistofdict:
             for element in zlistofdict:
                 found_ids = self.search(cr, uid, [('zcontact_id','=',element.has_key('id') and element['id'] or False)])
@@ -737,9 +738,11 @@ class res_partner(osv.osv):
                 element.pop('id',None)
                 if not found_ids:
                     partner_id = self.create(cr, uid, element, context=context)
+                    created += 1
                 else:
                     self.write(cr, uid, found_ids, element, context=context)
-        return True
+                    updated += 1
+        return {'created': created,'updated': updated}
     
     def partner_sync_openerp(self,cr, uid, zuid=False, addbookid=False, context=None):
         datas = False

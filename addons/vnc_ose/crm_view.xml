@@ -13,6 +13,9 @@
 <!-- 					<field name="contact_name" placeholder="First Name"/> -->
 <!-- 					<field name="contact_last_name" placeholder="Last Name"/> -->
 				</xpath>
+				<xpath expr="//field[@name='description']" position="replace">
+					<field name="description" widget="html"/>
+				</xpath>
 			</field>
 		</record>
 		

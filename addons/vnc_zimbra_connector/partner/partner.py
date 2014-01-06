@@ -777,13 +777,20 @@ class res_partner(osv.osv):
         return datas, deleted_datas
     
     def unlink(self, cr, uid, ids, context=None):
+        datas = []
+        data_write = []
         read_data = [x['id'] for x in self.read(cr, uid, ids, ['zcontact_id']) if not x['zcontact_id']]
         all_ids = self.pool.get('zimbra.contactsync.log').search(cr, uid, [])
         for zcs in self.pool.get('zimbra.contactsync.log').browse(cr, uid, all_ids):
             if zcs.delete_items:
-                data_write = ast.literal_eval(zcs.delete_items) + read_data
+                data_write = ast.literal_eval(zcs.delete_items)
+                datas = self.export_data(cr,uid,read_data,['id']) 
+                for d in datas['datas']:
+                    data_write.append(d[0])
             else:
-                data_write = read_data
+                datas = self.export_data(cr,uid,read_data,['id'])
+                data_write = datas['datas'][0]
+            
             self.pool.get('zimbra.contactsync.log').write(cr, uid, zcs.id, {'delete_items':data_write})
         return super(res_partner, self).unlink(cr, uid, ids, context=context)
     

@@ -780,6 +780,8 @@ class res_partner(osv.osv):
         datas = []
         data_write = []
         read_data = [x['id'] for x in self.read(cr, uid, ids, ['zcontact_id']) if not x['zcontact_id']]
+        if not read_data:
+            return super(res_partner, self).unlink(cr, uid, ids, context=context)
         all_ids = self.pool.get('zimbra.contactsync.log').search(cr, uid, [])
         for zcs in self.pool.get('zimbra.contactsync.log').browse(cr, uid, all_ids):
             if zcs.delete_items:

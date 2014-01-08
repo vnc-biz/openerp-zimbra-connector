@@ -791,7 +791,8 @@ class res_partner(osv.osv):
                     data_write.append(d[0])
             else:
                 datas = self.export_data(cr,uid,read_data,['id'])
-                data_write = datas['datas'][0]
+                for d in datas['datas']:
+                    data_write.append(d[0])
             
             self.pool.get('zimbra.contactsync.log').write(cr, uid, zcs.id, {'delete_items':data_write})
         return super(res_partner, self).unlink(cr, uid, ids, context=context)

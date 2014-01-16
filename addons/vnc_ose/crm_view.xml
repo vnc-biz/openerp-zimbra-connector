@@ -10,9 +10,19 @@
 			<field name="arch" type="xml">
 				<xpath expr="//field[@name='contact_name']" position="replace">
 					<field name="contact_name" placeholder="First Name" class="oe_inline"/><field name="contact_last_name" placeholder="Last Name" class="oe_inline"/>
-<!-- 					<field name="contact_name" placeholder="First Name"/> -->
-<!-- 					<field name="contact_last_name" placeholder="Last Name"/> -->
 				</xpath>
+				<xpath expr="//field[@name='description']" position="replace">
+					<field name="description" widget="html"/>
+				</xpath>
+			</field>
+		</record>
+		
+		<!-- Inherits Opportunity form View -->
+		<record id="view_opportunity_form_zimbra" model="ir.ui.view">
+			<field name="name">opportunity.form.zimbra</field>
+			<field name="model">crm.lead</field>
+			<field name="inherit_id" ref="crm.crm_case_form_view_oppor" />
+			<field name="arch" type="xml">
 				<xpath expr="//field[@name='description']" position="replace">
 					<field name="description" widget="html"/>
 				</xpath>

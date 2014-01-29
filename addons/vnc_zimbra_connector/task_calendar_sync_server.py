@@ -14,7 +14,6 @@ def xmlrpc_return(start_response, service, method, params, legacy_exceptions=Fal
     """
     Helper to call a service's method with some params, using a wsgi-supplied
     ``start_response`` callback.
-
     This is the place to look at to see the mapping between core exceptions
     and XML-RPC fault codes.
     """
@@ -24,7 +23,6 @@ def xmlrpc_return(start_response, service, method, params, legacy_exceptions=Fal
     # RPC_FAULT_CODE_APPLICATION_ERROR value.
     # This also mimics SimpleXMLRPCDispatcher._marshaled_dispatch() for
     # exception handling.
-    
     try:
         result = openerp.netsvc.dispatch_rpc(service, method, params)
         if service == 'db':
@@ -84,7 +82,6 @@ def application(environ, start_response):
                     ('WWW-Authenticate', 'Basic realm="OpenERP"')]
                 start_response('401 Unauthorized', headers)
                 return [body]
-            
             environ['REMOTE_USER'] = username
             del environ['HTTP_AUTHORIZATION']
         start_response("200 OK", [('cache-control', 'no-cache'), ('Pragma', 'no-cache'), ('Expires', 0), ('Content-Type', 'text/calendar'), ('Content-length', len(cal_data)), ('Content-Disposition', 'attachment; filename='+'task_calender'+'.ics')])
@@ -94,32 +91,29 @@ def application(environ, start_response):
     else:
         return wsgi_server.application_unproxied(environ, start_response)
 
-
 def make_service_call(host, port, username, pwd, dbname, option):
-    
-    def uid_generat(data):  # UID generat
+    def uid_generat(data):# UID generat
         sha_obj = hashlib.sha1(data)
         return sha_obj.hexdigest()
-    
     sock_common = xmlrpclib.ServerProxy('http://'+host+':'+port+'/xmlrpc/common')
     uid = sock_common.login(dbname, username, pwd)
     sock = xmlrpclib.ServerProxy('http://'+host+':'+port+'/xmlrpc/object')
     if option == "task":
         task_ids = sock.execute(dbname, uid, pwd, 'crm.task', 'search', [('task_type', '=', 't'), ('user_id', '=', uid)])
         task_data = sock.execute(dbname, uid, pwd, 'crm.task', 'read', task_ids,['name','description','date','date_deadline','priority','state','location','write_date'])
-        
+
         def ics_datetime(idate):
             if idate:
                 #returns the datetime as UTC, because it is stored as it in the database
                 idate = idate.split('.', 1)[0]
                 return DT.datetime.strptime(idate, '%Y-%m-%d %H:%M:%S').replace(tzinfo=pytz.timezone('UTC'))
             return False
-        
+
         cal = Calendar()
         cal.add('PRODID', 'Zimbra-Calendar-Provider')
         cal.add('VERSION', '2.0')
         cal.add('METHOD', 'PUBLISH')
-        
+
         for data in task_data:
             todo = Todo()
             todo.add('summary', data['name'])
@@ -136,6 +130,7 @@ def make_service_call(host, port, username, pwd, dbname, option):
                 todo.add('DTSTAMP', DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S'))
                 todo.add('LAST-MODIFIED', DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S'))
             todo['uid'] = uid_generat('crmTask'+str(data['id']))
+
             if data['priority'] == 'low':
                 todo.add('priority', 9)
             elif data['priority'] == 'medium':
@@ -144,7 +139,7 @@ def make_service_call(host, port, username, pwd, dbname, option):
                 todo.add('priority', 1)
             else:
                 todo.add('priority', 5)
-        
+
             if data['state'] == 'done':
                 todo.add('status', 'COMPLETED')
                 todo.add('PERCENT-COMPLETE', 100)
@@ -172,7 +167,7 @@ def make_service_call(host, port, username, pwd, dbname, option):
         cal.add('METHOD', 'PUBLISH')
         for data in event_data:
             event = Event()
-            if data['date_deadline'] and data['date'] and data['allday']:                
+            if data['date_deadline'] and data['date'] and data['allday']:
                 event.add('CREATED', date.today())
                 event.add('DTSTART', ics_datetime(data['date']))
                 event.add('DTEND', ics_datetime(data['date_deadline']))

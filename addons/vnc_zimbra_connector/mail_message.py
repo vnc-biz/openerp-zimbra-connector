@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 import logging
 from openerp import tools
-
 from email.header import decode_header
 from openerp import SUPERUSER_ID
 from openerp.osv import osv, orm, fields
 from openerp.tools import html_email_clean
 from openerp.tools.translate import _
-
 _logger = logging.getLogger(__name__)
+
 
 class mail_message(osv.Model):
     _inherit = 'mail.message'
@@ -20,12 +19,11 @@ class mail_message(osv.Model):
         'email_cc': fields.char('CC',
             help="Email address of the CC. This field is set when no matching partner is found for incoming emails."),
     }
-    
+
     def _message_read_dict(self, cr, uid, message, parent_id=False, context=None):
         """ Return a dict representation of the message. This representation is
             used in the JS client code, to display the messages. Partners and
             attachments related stuff will be done in post-processing in batch.
-
             :param dict message: mail.message browse record
         """
         # private message: no model, no res_id

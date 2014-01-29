@@ -14,10 +14,6 @@
       attachment of selected record. You can create Documents for crm Lead,
       HR Applicant and project issue from selected mails.
       """,
-    "init_xml" : [
-    ],
-    "demo_xml" : [
-    ],
     "update_xml" : [
         'security/ir.model.access.csv',
         'crm_view.xml',

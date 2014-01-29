@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 from osv import fields, osv
 
+
 class partner_responsibility(osv.osv):
     _name='partner.responsibility'
     _columns={
               'name':fields.char('Name',size=256),
               'description':fields.char('Description',size=256),
               }
-
 partner_responsibility()
+
 
 class lead_address_line(osv.osv):
     _description = "Contact"
@@ -61,8 +62,8 @@ class lead_address_line(osv.osv):
             if lead_ids:
                 lead_data = lead_pool.read(cr,uid,lead_ids)
         return lead_data
-
 lead_address_line()
+
 
 def search_read(self, cr, uid, domain, fields=[], context={}):
     """
@@ -78,5 +79,4 @@ def search_read(self, cr, uid, domain, fields=[], context={}):
     if ids:
         read_data = self.read(cr, uid, ids, fields=fields, context=context)
     return read_data
-
 osv.osv.search_read = search_read

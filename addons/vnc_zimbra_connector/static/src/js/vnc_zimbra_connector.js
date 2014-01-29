@@ -1,13 +1,12 @@
 openerp.vnc_zimbra_connector = function (session) {
     var _t = session.web._t,
        _lt = session.web._lt;
-    
-	session.mail.MessageCommon.include({
+
+    session.mail.MessageCommon.include({
         init: function (parent, datasets, options) {
-        	var self = this;
+            var self = this;
             this._super(parent, datasets, options);
             // record options
-            
             this.options = datasets.options || options || {};
             // record domain and context
             this.domain = datasets.domain || options.domain || [];
@@ -15,7 +14,6 @@ openerp.vnc_zimbra_connector = function (session) {
                 default_model: false,
                 default_res_id: 0,
                 default_parent_id: false }, options.context || {});
-
             this.id = datasets.id ||  false,
             this.last_id = this.id,
             this.model = datasets.model || this.context.default_model || false,
@@ -41,9 +39,7 @@ openerp.vnc_zimbra_connector = function (session) {
             this.attachment_ids = datasets.attachment_ids ||  [],
             this.partner_ids = datasets.partner_ids || [];
             this.date = datasets.date;
-            
             this.format_data();
-
             // record options and data
             this.show_record_name = this.options.show_record_name && this.record_name && !this.thread_level && this.model != 'res.partner';
             this.options.show_read = false;
@@ -62,5 +58,4 @@ openerp.vnc_zimbra_connector = function (session) {
             this.thread = false;
         },
     });
-    
 };

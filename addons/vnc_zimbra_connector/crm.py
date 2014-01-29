@@ -6,10 +6,10 @@ import time
 import hashlib
 from openerp import tools
 
+
 class crm_meeting(osv.osv):
     """ CRM Meeting Cases """
     _order = 'date asc'
-
     _inherit = 'crm.meeting'
 
     def _tz_get(self, cr, uid, context=None):
@@ -24,21 +24,19 @@ class crm_meeting(osv.osv):
     _columns = {
         'vtimezone': fields.selection(_tz_get, size=64, string='Timezone'),
     }
-
     _defaults = {
         'vtimezone': lambda s, cr, uid, c: s.pool.get('res.users').browse(cr, uid, uid, context=c).tz,
     }
-
 crm_meeting()
+
 
 class crm_lead(osv.osv):
     _inherit = 'crm.lead'
     _columns = {
-                'lead_add_line': fields.one2many('lead.address.line', 'lead_id',
-                                                 'Lead Address Line'),
-                'zimbra_msg_id': fields.char('Zimbra Messege ID',size=256),
+                'lead_add_line': fields.one2many('lead.address.line', 'lead_id', 'Lead Address Line'),
+                'zimbra_msg_id': fields.char('Zimbra Messege ID', size=256),
                 }
-    
+
     def create_quick_lead(self, cr, uid, vals, context={}):
         crm_lead_pool = self.pool.get('crm.lead')
         vals.update({'type': 'lead'})
@@ -49,8 +47,8 @@ class crm_lead(osv.osv):
                 crm_id = crm_lead_pool.create(cr, uid, vals, context=context)
                 return True
         return {'created': False}
-            
 crm_lead()
+
 
 class lead_address_line(osv.osv):
     _description = "Contact"
@@ -103,8 +101,8 @@ class lead_address_line(osv.osv):
             if lead_ids:
                 lead_data = lead_pool.read(cr,uid,lead_ids)
         return lead_data
-
 lead_address_line()
+
 
 def search_read(self, cr, uid, domain, fields=[], context={}):
     """
@@ -120,7 +118,6 @@ def search_read(self, cr, uid, domain, fields=[], context={}):
     if ids:
         read_data = self.read(cr, uid, ids, fields=fields, context=context)
     return read_data
-
 osv.osv.search_read = search_read
 
 

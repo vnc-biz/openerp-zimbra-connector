@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <template>
-	<!-- default layout -->
+    <!-- default layout -->
     <t t-name="mail.thread.message">
         <div t-attf-class="oe_msg #{widget.thread_level and widget.options.display_indented_thread > -1 ? 'oe_msg_indented' : ''} #{widget.subtype ? '' : 'oe_msg_nobody'} oe_msg_#{widget.type}">
             <div class='oe_msg_left'>
@@ -9,7 +9,6 @@
                 </a>
                 <img t-if="!widget.options.show_link" class="oe_msg_icon" t-att-src="widget.avatar"/>
             </div>
-
             <div class="oe_msg_center">
                 <div class='oe_msg_icons' t-if="!widget.options.readonly">
                     <span class='oe_read' t-if="widget.options.show_read"><a title="Done" class="oe_e">W</a></span>
@@ -20,16 +19,16 @@
                 </div>
                 <!-- message itself -->
                 <div class="oe_msg_content">
-                	<t t-if="(widget.email_from)">
-                		From : <a t-attf-href="mailto:widget.email_from"><t t-raw="widget.email_from"/></a>
+                    <t t-if="(widget.email_from)">
+                        From : <a t-attf-href="mailto:widget.email_from"><t t-raw="widget.email_from"/></a>
                     </t>
                     <t t-if="(widget.email_to)">
-                    	<br></br>
-                		To : <a t-attf-href="mailto:widget.email_to"><t t-raw="widget.email_to"/></a>
+                        <br></br>
+                        To : <a t-attf-href="mailto:widget.email_to"><t t-raw="widget.email_to"/></a>
                     </t>
                     <t t-if="(widget.email_cc)">
-                    	<br></br>
-                		Cc : <a t-attf-href="mailto:widget.email_cc"><t t-raw="widget.email_cc"/></a>
+                        <br></br>
+                        Cc : <a t-attf-href="mailto:widget.email_cc"><t t-raw="widget.email_cc"/></a>
                     </t>
                     <h1 t-if="(widget.show_record_name or widget.subject) and !widget.thread_level" class="oe_msg_title">
                         <a t-if="widget.options.show_link and widget.show_record_name" class="oe_mail_action_model" t-attf-href="#model=#{widget.model}&amp;id=#{widget.res_id}">

@@ -25,7 +25,8 @@ class email_server_tools(osv.osv_memory):
     _name = "email.server.tools"
 
     def _decode_header(self, text):
-        """Returns unicode() string conversion of the the given encoded smtp header"""
+        """Returns unicode() string conversion of the the given encoded 
+        smtp header"""
         if text:
             text = decode_header(text.replace('\r', ''))
             return ''.join([tools.ustr(x[0], x[1]) for x in text])
@@ -48,7 +49,8 @@ class email_server_tools(osv.osv_memory):
         msg_pool = self.pool.get('mail.message')
         for res_id in res_ids:
             case = self.pool.get(model).browse(cr, uid, res_id, context=context)
-            partner_id = hasattr(case, 'partner_id') and (case.partner_id and case.partner_id.id or False) or False
+            partner_id = hasattr(case, 'partner_id') and (case.partner_id and \
+                                        case.partner_id.id or False) or False
             if not partner_id and model == 'res.partner':
                 partner_id = res_id
             msg_data = {
@@ -81,7 +83,8 @@ class email_server_tools(osv.osv_memory):
         for attachment in attachments:
             try:
                 name= u''.join([
-                    unicode(b, e or 'ascii') for b, e in email.header.decode_header(attachment)
+                    unicode(b, e or 'ascii') for b, e in \
+                    email.header.decode_header(attachment)
                 ])
             except email.Errors.HeaderParseError:
                 pass # leave name as it was
@@ -89,7 +92,8 @@ class email_server_tools(osv.osv_memory):
                 'name': name,
                 'datas': binascii.b2a_base64(str(attachments.get(attachment))),
                 'datas_fname': name,
-                'description': 'Mail attachment From zimbra msg_id: %s' %(msg.get('message_id', '')),
+                'description': 'Mail attachment From zimbra msg_id: %s' \
+                                %(msg.get('message_id', '')),
                 'res_model': model,
                 'res_id': res_id,
             }
@@ -132,7 +136,8 @@ class email_server_tools(osv.osv_memory):
 
         if 'Date' in fields:
             date = self._decode_header(msg_txt.get('Date'))
-            msg['date'] = dateutil.parser.parse(date).strftime("%Y-%m-%d %H:%M:%S")
+            msg['date'] = dateutil.parser.parse(date).\
+                        strftime("%Y-%m-%d %H:%M:%S")
 
         if 'Content-Transfer-Encoding' in fields:
             msg['encoding'] = msg_txt.get('Content-Transfer-Encoding')
@@ -144,9 +149,11 @@ class email_server_tools(osv.osv_memory):
             msg['in-reply-to'] = msg_txt.get('In-Reply-To')
 
         if 'X-Priority' in fields:
-            msg['priority'] = msg_txt.get('X-Priority', '3 (Normal)').split(' ')[0]
+            msg['priority'] = msg_txt.get('X-Priority', '3 (Normal)').\
+            split(' ')[0]
 
-        if not msg_txt.is_multipart() or 'text/plain' in msg.get('Content-Type', ''):
+        if not msg_txt.is_multipart() or 'text/plain' in \
+                                                msg.get('Content-Type', ''):
             encoding = msg_txt.get_content_charset()
             content = msg_txt.get_payload(decode=True)
             html_header = u"""
@@ -174,7 +181,8 @@ class email_server_tools(osv.osv_memory):
 
         attachments = {}
         has_plain_text = False
-        if msg_txt.is_multipart() or 'multipart/alternative' in msg.get('content-type', ''):
+        if msg_txt.is_multipart() or 'multipart/alternative' in \
+                                                msg.get('content-type', ''):
             body = ""
             for part in msg_txt.walk():
                 if part.get_content_maintype() == 'multipart':
@@ -205,9 +213,12 @@ class email_server_tools(osv.osv_memory):
                             original_txt = content
                             # catch any mis-typed en dashes
                             converted_txt = original_txt.replace(" - ", " -- ")
-                            converted_txt = smartypants.educateQuotes(converted_txt)
-                            converted_txt = smartypants.educateEllipses(converted_txt)
-                            converted_txt = smartypants.educateDashesOldSchool(converted_txt)
+                            converted_txt = smartypants.\
+                                            educateQuotes(converted_txt)
+                            converted_txt = smartypants.\
+                                            educateEllipses(converted_txt)
+                            converted_txt = smartypants.\
+                                        educateDashesOldSchool(converted_txt)
                             # normalise line endings and insert blank line between paragraphs for Markdown
                             converted_txt = re.sub("\r\n", "\n", converted_txt)
                             converted_txt = re.sub("\n\n+", "\n", converted_txt)
@@ -216,7 +227,8 @@ class email_server_tools(osv.osv_memory):
                             html_out = html_header + html + html_footer
                             body = html_out
                             msg['body'] = body
-                elif part.get_content_maintype() in ('application', 'image', 'audio', 'video'):
+                elif part.get_content_maintype() in \
+                                    ('application', 'image', 'audio', 'video'):
                     if filename:
                         attachments[filename] = part.get_payload(decode=True)
                     else:
@@ -225,6 +237,7 @@ class email_server_tools(osv.osv_memory):
             msg['body'] = body
             msg['attachments'] = attachments
         return msg
+
 email_server_tools()
 
 
@@ -240,7 +253,8 @@ class zimbra_partner(osv.osv_memory):
             @param vals: Value
         """
         dictcreate = dict(vals)
-        # Set False value if 'undefined' for record. Id User does not spicify the values, Thunerbird set 'undefined' by default for new contact.
+        # Set False value if 'undefined' for record. Id User does not spicify 
+        #the values, Thunerbird set 'undefined' by default for new contact.
         for key in dictcreate:
             if dictcreate[key] == 'undefined':
                 dictcreate[key] = False
@@ -273,20 +287,23 @@ class zimbra_partner(osv.osv_memory):
         msg_ids = []
         res = {}
         res_ids = []
-        obj_list= ['crm.lead','project.issue','hr.applicant','res.partner','project.project']
+        obj_list= ['crm.lead','project.issue','hr.applicant','res.partner',\
+                   'project.project']
         for ref_id in ref_ids:
             msg_new = dictcreate.get('message')
             ref = ref_id.split(',')
             model = ref[0]
             res_id = int(ref[1])
             if message_id:
-                msg_ids = msg_pool.search(cr, uid, [('message_id','=',message_id),('res_id','=',res_id),('model','=',model)])
+                msg_ids = msg_pool.search(cr, uid, [('message_id','=',\
+                        message_id),('res_id','=',res_id),('model','=',model)])
                 if msg_ids and len(msg_ids):
                     continue
             if model not in obj_list:
                 res={}
                 obj_attch = self.pool.get('ir.attachment')
-                ls = ['*', '/', '\\', '<', '>', ':', '?', '"', '|', '\t', '\n',':','~']
+                ls = ['*', '/', '\\', '<', '>', ':', '?',\
+                       '"', '|', '\t', '\n',':','~']
                 sub = msg.get('subject','NO-SUBJECT').replace(' ','')
                 if sub.strip() == '':
                    sub = 'NO SBUJECT'
@@ -322,7 +339,8 @@ class zimbra_partner(osv.osv_memory):
         dictcreate = dict(vals)
         model = str(dictcreate.get('model'))
         message = dictcreate.get('message')
-        return self.pool.get('email.server.tools').process_email(cr, uid, model, message, attach=True, context=None)
+        return self.pool.get('email.server.tools').process_email(cr, uid, \
+                                    model, message, attach=True, context=None)
 
     def search_message(self, cr, uid, message, context=None):
         """
@@ -353,7 +371,8 @@ class zimbra_partner(osv.osv_memory):
                 res_id = msg.res_id
             else:
                 if references:
-                    msg_ids = msg_pool.search(cr, uid, [('message_id','in',references)])
+                    msg_ids = msg_pool.search(cr, uid,\
+                                         [('message_id','in',references)])
                     if msg_ids and len(msg_ids):
                         msg = msg_pool.browse(cr, uid, msg_ids[0])
                         model = msg.model
@@ -413,8 +432,10 @@ class zimbra_partner(osv.osv_memory):
         if res_id:
             address_data = address_pool.read(cr, user, int(res_id), [])
             result = {
-               'country_id': dictcreate['country_id'] and int(dictcreate['country_id'][0]) or False,
-               'state_id': dictcreate['state_id'] and int(dictcreate['state_id'][0]) or False,
+               'country_id': dictcreate['country_id'] and \
+                            int(dictcreate['country_id'][0]) or False,
+               'state_id': dictcreate['state_id'] and \
+                            int(dictcreate['state_id'][0]) or False,
                'name': dictcreate['name'],
                'street': dictcreate['street'],
                'street2': dictcreate['street2'],
@@ -437,7 +458,8 @@ class zimbra_partner(osv.osv_memory):
         """
         dictcreate = dict(vals)
         partner_obj = self.pool.get('res.partner')
-        search_id =  partner_obj.search(cr, user,[('name','=',dictcreate['name'])])
+        search_id =  partner_obj.search(cr, user,[('name','=',\
+                                            dictcreate['name'])])
         if search_id:
             return 0
         create_id =  partner_obj.create(cr, user, dictcreate)
@@ -451,7 +473,8 @@ class zimbra_partner(osv.osv_memory):
             @param vals: Get Values
         """
         dictcreate = dict(vals)
-        search_id = self.pool.get('ir.model').search(cr, user,[('model','=',dictcreate['model'])])
+        search_id = self.pool.get('ir.model').search(cr, user,\
+                                        [('model','=',dictcreate['model'])])
         return (search_id and search_id[0]) or 0
 
     def search_checkbox(self,cr,user,vals):
@@ -480,10 +503,12 @@ class zimbra_partner(osv.osv_memory):
                     name_get.append(dyn_object.name_get(cr, user, search_id2))
             else:
                 try:
-                    search_id1 = dyn_object.search(cr,user,[('name','ilike',value)])
+                    search_id1 = dyn_object.search(cr,user,\
+                                                   [('name','ilike',value)])
                     if search_id1:
                         name_get.append(object)
-                        name_get.append(dyn_object.name_get(cr, user, search_id1))
+                        name_get.append(dyn_object.name_get(\
+                                                        cr, user, search_id1))
                 except:
                     er_val.append(object)
                     continue
@@ -499,7 +524,8 @@ class zimbra_partner(osv.osv_memory):
             @param uid: the current user’s ID for security checks,
             @param vals: Get Values
         """
-        obj_list= [('crm.lead','CRM Lead'),('project.issue','Project Issue'), ('hr.applicant','HR Applicant')]
+        obj_list= [('crm.lead','CRM Lead'),('project.issue','Project Issue'),\
+                   ('hr.applicant','HR Applicant')]
         object=[]
         model_obj=self.pool.get('ir.model')
         for obj in obj_list:
@@ -526,7 +552,8 @@ class zimbra_partner(osv.osv_memory):
             @param uid: the current user’s ID for security checks,
             @param vals: Get Values
         """
-        cr.execute("select id, name  from res_country_state  where country_id = %s order by name",(vals,) )
+        cr.execute("select id, name  from res_country_state  where "\
+                    "country_id = %s order by name",(vals,) )
         state_country_list = cr.fetchall()
         return state_country_list
 
@@ -557,19 +584,24 @@ class zimbra_partner(osv.osv_memory):
         context = {}
         cal_pool = self.pool.get('crm.meeting')
         obj_name = vals_dict['ref_ids'].split(',')[0]
-        if vals_dict['ref_ids'].split(',') and len(vals_dict['ref_ids'].split(',')) > 1:
+        if vals_dict['ref_ids'].split(',') and \
+                    len(vals_dict['ref_ids'].split(',')) > 1:
             obj_id = vals_dict['ref_ids'].split(',')[1]
         else:
              obj_id = False
         if not obj_name and not obj_id:
-            meeting_ids=cal_pool.import_cal(cr,uid,vals_dict['message'],context=context)
+            meeting_ids=cal_pool.import_cal(cr,uid,vals_dict['message'],\
+                                            context=context)
         else:
-            obj_dict = {'crm.lead':'default_opportunity_id','res.partner':'default_partner_id'}
+            obj_dict = {'crm.lead':'default_opportunity_id',\
+                        'res.partner':'default_partner_id'}
             context[obj_dict[obj_name]]=int(obj_id)
             if obj_name == 'crm.lead':
-                partner_id = self.pool.get('crm.lead').browse(cr,uid,int(obj_id)).partner_id.id or False
+                partner_id = self.pool.get('crm.lead').browse(\
+                                    cr,uid,int(obj_id)).partner_id.id or False
                 context.update({'default_partner_id':partner_id})
-            meeting_ids=cal_pool.import_cal(cr,uid,vals_dict['message'],context=context)
+            meeting_ids=cal_pool.import_cal(cr,uid,
+                                        vals_dict['message'],context=context)
         return True
 
     def check_calendar_existance(self,cr,uid,vals):
@@ -577,11 +609,13 @@ class zimbra_partner(osv.osv_memory):
             return False
         else:
             pass
-        self_ids = self.pool.get('crm.meeting').search(cr,uid,[('ext_meeting_id','=',vals)])
+        self_ids = self.pool.get('crm.meeting').search(cr,uid,\
+                                                [('ext_meeting_id','=',vals)])
         if self_ids:
             self.meeting_push(cr, uid, vals)
         else:
             return False
+
 zimbra_partner()
 
 
@@ -605,7 +639,8 @@ class crm_meeting(osv.osv):
         if not wematch:
             if oomodel:
                 model_obj = pooler.get_pool(cr.dbname).get(oomodel)
-                sql = "SELECT DISTINCT(id) FROM "+model_obj._table+" where ext_meeting_id ilike '"+uidval+"'"
+                sql = "SELECT DISTINCT(id) FROM "+model_obj._table\
+                        +" where ext_meeting_id ilike '"+uidval+"'"
                 cr.execute(sql)
                 ex_id = cr.fetchone()
                 if ex_id:
@@ -668,10 +703,13 @@ class crm_meeting(osv.osv):
                 # Compute value of duration
                 if val.get('date_deadline', False) and 'duration' not in val:
                     start = datetime.strptime(val['date'], '%Y-%m-%d %H:%M:%S')
-                    end = datetime.strptime(val['date_deadline'], '%Y-%m-%d %H:%M:%S')
+                    end = datetime.strptime(val['date_deadline'],\
+                                             '%Y-%m-%d %H:%M:%S')
                     diff = end - start
-                    val['duration'] = (diff.seconds/float(86400) + diff.days) * 24
-                exists, r_id = self.uid2openobjectid(cr, val['id'], context.get('model'), val.get('recurrent_id'))
+                    val['duration'] = (diff.seconds/float(86400) +\
+                                        diff.days) * 24
+                exists, r_id = self.uid2openobjectid(cr, val['id'],\
+                                 context.get('model'), val.get('recurrent_id'))
                 if val.has_key('create_date'):
                     val.pop('create_date')
                 u_id = val.get('id', None)
@@ -687,16 +725,19 @@ class crm_meeting(osv.osv):
                     if u_id in recur_pool and val.get('recurrent_id'):
                         val.update({'recurrent_uid': recur_pool[u_id]})
                         val.update({'ext_meeting_id':u_id})
-                        revent_id = model_obj.create(cr, uid, val,context=context)
+                        revent_id = model_obj.create(cr, uid, val,\
+                                                     context=context)
                         ids.append(revent_id)
                     else:
-                        __rege = re.compile(r'OpenObject-([\w|\.]+)_([0-9]+)@(\w+)$')
+                        __rege = re.compile\
+                                (r'OpenObject-([\w|\.]+)_([0-9]+)@(\w+)$')
                         wematch = __rege.match(u_id.encode('utf8'))
                         if wematch:
                             model, recur_id, dbname = wematch.groups()
                             val.update({'recurrent_uid': recur_id})
                         val.update({'ext_meeting_id':u_id})
-                        event_id = model_obj.create(cr, uid, val,context=context)
+                        event_id = model_obj.create(cr, uid, val,\
+                                                    context=context)
                         recur_pool[u_id] = event_id
                         ids.append(event_id)
         except Exception:
@@ -707,6 +748,7 @@ class crm_meeting(osv.osv):
         if data:
             self_ids=self.search(cr,uid,[('ext_meeting_id','=',data)])
         return True
+
 crm_meeting()
 
 
@@ -725,7 +767,8 @@ class res_partner(osv.osv):
         if zlistofdict:
             for element in zlistofdict:
                 revised_element = {}
-                found_ids = self.search(cr, uid, [('zcontact_id','=',element.has_key('id') and element['id'] or False)])
+                found_ids = self.search(cr, uid, [('zcontact_id','=',\
+                            element.has_key('id') and element['id'] or False)])
                 element.update({'country_id': False,'state_id': False,
                 'zcontact_id': element.has_key('id') and element['id'] or False})
                 for key,val in element.iteritems():
@@ -734,48 +777,67 @@ class res_partner(osv.osv):
                     revised_element.update({key:val})
                 revised_element.pop('id',None)
                 if not found_ids:
-                    partner_id = self.create(cr, uid, revised_element, context=context)
+                    partner_id = self.create(cr, uid, revised_element, \
+                                             context=context)
                     created += 1
                 else:
-                    self.write(cr, uid, found_ids, revised_element, context=context)
+                    self.write(cr, uid, found_ids, revised_element, \
+                               context=context)
                     updated += 1
         return {'created': created,'updated': updated}
 
-    def partner_sync_openerp(self,cr, uid, zuid=False, addbookid=False, context=None):
+    def partner_sync_openerp(self,cr, uid, zuid=False, addbookid=False, \
+                             context=None):
         datas = False
         deleted_datas = {'deleted_datas':[]}
         zimbra_contactsync_pool = self.pool.get('zimbra.contactsync.log')
         if not zuid and not addbookid:
             return {'error':'UserID/AddressBook ID missing !'}
-        zsync_ids = zimbra_contactsync_pool.search(cr, uid, [('zimbra_uid','=',zuid),('addbook_id','=',addbookid)])
+        zsync_ids = zimbra_contactsync_pool.search(cr, uid, \
+                        [('zimbra_uid','=',zuid),('addbook_id','=',addbookid)])
         if zsync_ids:
             data_read = zimbra_contactsync_pool.read(cr, uid, zsync_ids[0])
-            partner_ids = self.search(cr, uid, [('write_date','>',datetime.strptime(data_read['last_sync'],'%Y-%m-%d %H:%M:%S')),('zcontact_id','=',False)])
+            partner_ids = self.search(cr, uid, [('write_date','>',\
+                            datetime.strptime(data_read['last_sync'],\
+                            '%Y-%m-%d %H:%M:%S')),('zcontact_id','=',False)])
             if data_read['delete_items']:
-                deleted_datas['deleted_datas'] = ast.literal_eval(data_read['delete_items'])
-            zimbra_contactsync_pool.write(cr, uid, zsync_ids, {
-                                       'last_sync':time.strftime('%Y-%m-%d %H:%M:%S'),
-                                       'delete_items':'',
-                                       })
-            datas = self.export_data(cr,uid,partner_ids,['id','first_name','middle_name','last_name','city','street','street2','zip','phone','fax','email','mobile','parent_id','title','country_id'])
+                deleted_datas['deleted_datas'] = \
+                                    ast.literal_eval(data_read['delete_items'])
+            zimbra_contactsync_pool.write(cr, uid, zsync_ids, 
+                                {
+                                'last_sync':time.strftime('%Y-%m-%d %H:%M:%S'),
+                                'delete_items':'',
+                                })
+            datas = self.export_data(cr,uid,partner_ids,\
+                                     ['id','first_name','middle_name',\
+                                      'last_name','city','street','street2',\
+                                      'zip','phone','fax','email','mobile',\
+                                      'parent_id','title','country_id'])
         else:
             partner_id = self.search(cr, uid, [('zcontact_id','=',False)])
-            datas = self.export_data(cr,uid,partner_id,['id','first_name','middle_name','last_name','city','street','street2','zip','phone','fax','email','mobile','parent_id','title','country_id'])
+            datas = self.export_data(cr,uid,partner_id,['id','first_name',\
+                                            'middle_name','last_name','city',\
+                                            'street','street2','zip','phone',\
+                                            'fax','email','mobile','parent_id',\
+                                            'title','country_id'])
             zimbra_contactsync_pool.create(cr, uid, {
-                                       'zimbra_uid':zuid,
-                                       'addbook_id':addbookid,
-                                       'last_sync':time.strftime('%Y-%m-%d %H:%M:%S')
-                                       })
+                                'zimbra_uid':zuid,
+                                'addbook_id':addbookid,
+                                'last_sync':time.strftime('%Y-%m-%d %H:%M:%S')
+                                })
         return datas, deleted_datas
 
     def unlink(self, cr, uid, ids, context=None):
         datas = []
         data_write = []
-        read_data = [x['id'] for x in self.read(cr, uid, ids, ['zcontact_id']) if not x['zcontact_id']]
+        read_data = [x['id'] for x in self.read(cr, uid, ids, \
+                                    ['zcontact_id']) if not x['zcontact_id']]
         if not read_data:
-            return super(res_partner, self).unlink(cr, uid, ids, context=context)
+            return super(res_partner, self).unlink(cr, uid, ids, \
+                                                   context=context)
         all_ids = self.pool.get('zimbra.contactsync.log').search(cr, uid, [])
-        for zcs in self.pool.get('zimbra.contactsync.log').browse(cr, uid, all_ids):
+        for zcs in self.pool.get('zimbra.contactsync.log').browse(cr, uid,\
+                                                                   all_ids):
             if zcs.delete_items:
                 data_write = ast.literal_eval(zcs.delete_items)
                 datas = self.export_data(cr,uid,read_data,['id'])
@@ -785,13 +847,17 @@ class res_partner(osv.osv):
                 datas = self.export_data(cr,uid,read_data,['id'])
                 for d in datas['datas']:
                     data_write.append(d[0])
-            self.pool.get('zimbra.contactsync.log').write(cr, uid, zcs.id, {'delete_items':data_write})
+            self.pool.get('zimbra.contactsync.log').write(cr, uid, zcs.id,\
+                                                 {'delete_items':data_write})
         return super(res_partner, self).unlink(cr, uid, ids, context=context)
 
     def create(self, cr, uid, vals, context=None):
         if vals.get('is_company') != True:
-            if vals.get('first_name') or vals.get('middle_name') or vals.get('last_name'):
-                vals['name'] = (vals.get('first_name') or "") + ' '+  (vals.get('middle_name') or "") + ' '+( vals.get('last_name') or "")
+            if vals.get('first_name') or vals.get('middle_name') or \
+                                        vals.get('last_name'):
+                vals['name'] = (vals.get('first_name') or "") + ' '+  \
+                                (vals.get('middle_name') or "") + ' '+\
+                                ( vals.get('last_name') or "")
         else:
             vals['first_name'] = vals['name']
         return super(res_partner, self).create(cr, uid, vals, context=context)
@@ -810,25 +876,30 @@ class res_partner(osv.osv):
             ids = [ids]
         for data in self.browse(cr, uid, ids):
             if not vals.get('is_company') or not data['is_company']:
-                if vals.get('first_name') or vals.get('middle_name') or vals.get('last_name'):
-                    f_name = vals.get('first_name') or  data['first_name'] or ''
-                    m_name = vals.get('middle_name') or data['middle_name'] or ''
-                    l_name = vals.get('last_name') or data['last_name'] or ''
-                    vals['name'] = (f_name or "") + ' '+  (m_name or "")+ ' '+ (l_name or "")
+                if vals.get('first_name') or vals.get('middle_name') or \
+                    vals.get('last_name'):
+                    f_name=vals.get('first_name') or  data['first_name'] or ''
+                    m_name=vals.get('middle_name') or data['middle_name'] or ''
+                    l_name=vals.get('last_name') or data['last_name'] or ''
+                    vals['name'] = (f_name or "") + ' '+  (m_name or "")+ ' '+\
+                                    (l_name or "")
             else:
                 if not vals.get('name'):
                     for data in self.browse(cr, uid, ids):
                         vals['first_name'] = data['name']
                 else:
                     vals['first_name'] = vals['name']
-        return super(res_partner, self).write(cr, uid, ids, vals, context=context)
+        return super(res_partner, self).write(cr, uid, ids, vals,\
+                                               context=context)
 
     def res_partner_name_cron(self, cr, uid, context={}):
         ids = self.search(cr, uid, [], context=context)
         for data in self.browse(cr, uid, ids, context=context):
             if data.name:
-                self.write(cr, uid, data['id'], {'first_name': data.name}, context)
+                self.write(cr, uid, data['id'], {'first_name': data.name},\
+                            context)
         return True
+
 res_partner()
 
 class zimbra_contactsync_log(osv.osv):
@@ -841,4 +912,6 @@ class zimbra_contactsync_log(osv.osv):
                 'delete_items':fields.text('Delete Sync Pending Partners')
                 }
     _defaults = {'delete_items':'[]'}
+
 zimbra_contactsync_log()
+# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

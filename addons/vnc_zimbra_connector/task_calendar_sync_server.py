@@ -10,7 +10,8 @@ import pytz
 import urllib2
 
 
-def xmlrpc_return(start_response, service, method, params, legacy_exceptions=False):
+def xmlrpc_return(start_response, service, method, params, \
+                  legacy_exceptions=False):
     """
     Helper to call a service's method with some params, using a wsgi-supplied
     ``start_response`` callback.
@@ -29,13 +30,15 @@ def xmlrpc_return(start_response, service, method, params, legacy_exceptions=Fal
             import re
             r = openerp.tools.config['dbfilter']
             result = [i for i in result if re.match(r, i)]
-        response = xmlrpclib.dumps((result,), methodresponse=1, allow_none=False, encoding=None)
+        response = xmlrpclib.dumps((result,), methodresponse=1, \
+                                   allow_none=False, encoding=None)
     except Exception, e:
         if legacy_exceptions:
             response = wsgi_server.xmlrpc_handle_exception_legacy(e)
         else:
             response = wsgi_server.xmlrpc_handle_exception(e)
-    start_response("200 OK", [('Content-Type','text/xml'), ('Content-Length', str(len(response)))])
+    start_response("200 OK", [('Content-Type','text/xml'),\
+                              ('Content-Length', str(len(response)))])
     return [response]
 
 def application(environ, start_response):
@@ -62,9 +65,13 @@ def application(environ, start_response):
             cal_data = ''
             try:
                 if environ.get('PATH_INFO') == '/task':
-                    cal_data = make_service_call(environ.get('SERVER_NAME'), environ.get('SERVER_PORT'), username, password, para_final[1], 'task')
+                    cal_data = make_service_call(environ.get('SERVER_NAME'), \
+                                environ.get('SERVER_PORT'), username, \
+                                password, para_final[1], 'task')
                 elif environ.get('PATH_INFO') == '/calendar':
-                    cal_data = make_service_call(environ.get('SERVER_NAME'), environ.get('SERVER_PORT'), username, password, para_final[1], 'calendar')
+                    cal_data = make_service_call(environ.get('SERVER_NAME'), \
+                                environ.get('SERVER_PORT'), username, \
+                                password, para_final[1], 'calendar')
                 else:
                     body = 'Invalid URL'
                     headers = [
@@ -84,10 +91,16 @@ def application(environ, start_response):
                 return [body]
             environ['REMOTE_USER'] = username
             del environ['HTTP_AUTHORIZATION']
-        start_response("200 OK", [('cache-control', 'no-cache'), ('Pragma', 'no-cache'), ('Expires', 0), ('Content-Type', 'text/calendar'), ('Content-length', len(cal_data)), ('Content-Disposition', 'attachment; filename='+'task_calender'+'.ics')])
+        start_response("200 OK", [('cache-control', 'no-cache'), \
+                        ('Pragma', 'no-cache'), ('Expires', 0), \
+                        ('Content-Type', 'text/calendar'), \
+                        ('Content-length', len(cal_data)), \
+                        ('Content-Disposition', 'attachment; filename='+\
+                         'task_calender'+'.ics')])
         return cal_data
     if wsgi_server.config['proxy_mode'] and 'HTTP_X_FORWARDED_HOST' in environ:
-        return wsgi_server.werkzeug.contrib.fixers.ProxyFix(wsgi_server.application_unproxied)(environ, start_response)
+        return wsgi_server.werkzeug.contrib.fixers.ProxyFix\
+                (wsgi_server.application_unproxied)(environ, start_response)
     else:
         return wsgi_server.application_unproxied(environ, start_response)
 
@@ -99,14 +112,18 @@ def make_service_call(host, port, username, pwd, dbname, option):
     uid = sock_common.login(dbname, username, pwd)
     sock = xmlrpclib.ServerProxy('http://'+host+':'+port+'/xmlrpc/object')
     if option == "task":
-        task_ids = sock.execute(dbname, uid, pwd, 'crm.task', 'search', [('task_type', '=', 't'), ('user_id', '=', uid)])
-        task_data = sock.execute(dbname, uid, pwd, 'crm.task', 'read', task_ids,['name','description','date','date_deadline','priority','state','location','write_date'])
+        task_ids = sock.execute(dbname, uid, pwd, 'crm.task', 'search',\
+                             [('task_type', '=', 't'), ('user_id', '=', uid)])
+        task_data = sock.execute(dbname, uid, pwd, 'crm.task', 'read', task_ids,\
+                    ['name','description','date','date_deadline',\
+                     'priority','state','location','write_date'])
 
         def ics_datetime(idate):
             if idate:
                 #returns the datetime as UTC, because it is stored as it in the database
                 idate = idate.split('.', 1)[0]
-                return DT.datetime.strptime(idate, '%Y-%m-%d %H:%M:%S').replace(tzinfo=pytz.timezone('UTC'))
+                return DT.datetime.strptime(idate,\
+                     '%Y-%m-%d %H:%M:%S').replace(tzinfo=pytz.timezone('UTC'))
             return False
 
         cal = Calendar()
@@ -127,8 +144,10 @@ def make_service_call(host, port, username, pwd, dbname, option):
             else:
                 todo.add('DUE', ics_datetime(data['date']))
             if data['write_date']:
-                todo.add('DTSTAMP', DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S'))
-                todo.add('LAST-MODIFIED', DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S'))
+                todo.add('DTSTAMP', DT.datetime.strptime(data['write_date'],\
+                                                          '%Y-%m-%d %H:%M:%S'))
+                todo.add('LAST-MODIFIED', \
+                DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S'))
             todo['uid'] = uid_generat('crmTask'+str(data['id']))
 
             if data['priority'] == 'low':
@@ -153,12 +172,16 @@ def make_service_call(host, port, username, pwd, dbname, option):
             cal.add_component(todo)
         return cal.to_ical()
     else:
-        event_ids = sock.execute(dbname, uid, pwd, 'crm.meeting', 'search', [('user_id','=',uid)])
-        event_data = sock.execute(dbname, uid, pwd, 'crm.meeting', 'read', event_ids,['show_as','allday','name','description','date','date_deadline','location','write_date'])
+        event_ids = sock.execute(dbname, uid, pwd, 'crm.meeting', 'search',\
+                                 [('user_id','=',uid)])
+        event_data = sock.execute(dbname, uid, pwd, 'crm.meeting', 'read',\
+                     event_ids,['show_as','allday','name','description',\
+                            'date','date_deadline','location','write_date'])
         def ics_datetime(idate):
             if idate:
                 #returns the datetime as UTC, because it is stored as it in the database
-                return DT.datetime.strptime(idate, '%Y-%m-%d %H:%M:%S').replace(tzinfo=pytz.timezone('UTC'))
+                return DT.datetime.strptime(idate,\
+                     '%Y-%m-%d %H:%M:%S').replace(tzinfo=pytz.timezone('UTC'))
             return False
 
         cal = Calendar()
@@ -178,8 +201,10 @@ def make_service_call(host, port, username, pwd, dbname, option):
                 event.add('DTEND', ics_datetime(data['date_deadline']))
                 event.add('X-MICROSOFT-CDO-ALLDAYEVENT', 'FALSE')
             if data['write_date']:
-                event.add('DTSTAMP', DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S'))
-                event.add('LAST-MODIFIED', DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S'))
+                event.add('DTSTAMP', DT.datetime.strptime(data['write_date'],\
+                                                           '%Y-%m-%d %H:%M:%S'))
+                event.add('LAST-MODIFIED', \
+                DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S'))
             if data['show_as']:
                 event.add('X-MICROSOFT-CDO-INTENDEDSTATUS', data['show_as'])
             event.add('UID', uid_generat('crmCalendar'+str(data['id'])))

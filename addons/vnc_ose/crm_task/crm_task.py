@@ -21,16 +21,20 @@ class crm_task(base_state,osv.osv):
         result = {}
         if not isinstance(ids,(list,tuple)):
             ids = [ids]
-        for self_obj in self.read(cr, uid, ids, self._check_fields, context=context):
+        for self_obj in self.read(cr, uid, ids, self._check_fields, \
+                                  context=context):
             for field_check in self._check_fields:
-                if vals and field_check in vals and self_obj[field_check] != vals[field_check]:
+                if vals and field_check in vals and self_obj[field_check] != \
+                                                            vals[field_check]:
                     if  vals[field_check]:
-                        f_val = self.pool.get('res.users').read(cr, uid, vals[field_check], ['name'])['name']
+                        f_val = self.pool.get('res.users').read(cr, uid, \
+                                            vals[field_check], ['name'])['name']
                     else:
                         f_val = ''
                     self.pool.get('crm.field.history').create(cr, uid, {
                                 'value_after':f_val,
-                                'value_before':self_obj[field_check] and self_obj[field_check][-1] or '',
+                                'value_before':self_obj[field_check] and \
+                                                self_obj[field_check][-1] or '',
                                 'task_id':self_obj['id'],
                                 'user_id':uid,
                                 'field_name':field_check,
@@ -40,15 +44,18 @@ class crm_task(base_state,osv.osv):
     def write(self, cr, uid, ids, vals, context={}):
         if not isinstance(ids, (list,tuple)):
             ids = [ids]
-        old_datas = self.read(cr, uid, ids, ['user_id','date','date_deadline'], context=context)
+        old_datas = self.read(cr, uid, ids, ['user_id','date','date_deadline'],\
+                    context=context)
         for old_data in old_datas:
-            if not old_data['user_id'] or ('user_id' in vals and vals['user_id'] != old_data['user_id'][0]):
+            if not old_data['user_id'] or ('user_id' in vals and \
+                                    vals['user_id'] != old_data['user_id'][0]):
                 vals['user_delegated_id'] = uid
                 self.check_fields(cr, uid, old_data['id'], vals, context)
             # Copying date to date_deadline if it is False, calling onchage will return the date_deadline
             if not old_data['date_deadline'] and old_data['date']:
                 date = self.browse(cr, uid, ids[0]).date
-                data = self.onchange_dates(cr, uid, ids[0], date, duration=2, context=context)
+                data = self.onchange_dates(cr, uid, ids[0], date, duration=2,\
+                                            context=context)
                 vals.update(data['value'])
         return super(crm_task, self).write(cr, uid, ids, vals, context=context)
 
@@ -62,7 +69,8 @@ class crm_task(base_state,osv.osv):
         # Copying date to date_deadline if it is False, calling onchage will return the date_deadline
         if vals.get('date_deadline',False) == False:
             if vals.get('date',False):
-                data = self.onchange_dates(cr, uid, [], vals['date'], duration=2, context=context)
+                data = self.onchange_dates(cr, uid, [], vals['date'],\
+                                            duration=2, context=context)
                 vals.update(data['value'])
         return res
 
@@ -71,42 +79,58 @@ class crm_task(base_state,osv.osv):
         calling default method (Default fields) for the object crm_task.
         Returns Dictionary of default fields.
         """
-        res = super(crm_task,self).default_get( cr, uid, fields, context=context)
+        res = super(crm_task,self).default_get( cr, uid, fields, \
+                                                context=context)
         if res and res.has_key('user_id'):
-            res['section_id'] = self.pool.get('res.users').browse(cr, uid, res['user_id']).section_id.id
+            res['section_id'] = self.pool.get('res.users').browse(cr, uid, \
+                                                res['user_id']).section_id.id
         else:
-            res['section_id'] = self.pool.get('crm.case.section').search(cr, uid, [('name','=','Sales Department')])[0]
+            res['section_id'] = self.pool.get('crm.case.section').search(cr, uid,\
+                                         [('name','=','Sales Department')])[0]
 
-        if context and 'default_opportunity_id' in context and context['default_opportunity_id']:
+        if context and 'default_opportunity_id' in context and \
+                                            context['default_opportunity_id']:
             crm_pool = self.pool.get('crm.lead')
-            crm_Data = crm_pool.read(cr, uid , int(context['default_opportunity_id']), ['partner_id','partner_address_id'])
-            res['partner_id'] = crm_Data['partner_id'] and crm_Data['partner_id'][0] or False
+            crm_Data = crm_pool.read(cr, uid , \
+                                     int(context['default_opportunity_id']),\
+                                     ['partner_id','partner_address_id'])
+            res['partner_id'] = crm_Data['partner_id'] and \
+                                crm_Data['partner_id'][0] or False
             context['default_partner_address_id'] = False
             context['default_partner_id'] = res['partner_id']
 
         if context and context.get('default_partner_address_id',False):
-            read_data = self.pool.get('res.partner').read(cr, uid, context.get('default_partner_address_id'))
-            f_name = self.pool.get('res.partner').read(cr, uid, context.get('default_partner_address_id'), ['name'])
+            read_data = self.pool.get('res.partner').read(cr, uid,\
+                        context.get('default_partner_address_id'))
+            f_name = self.pool.get('res.partner').read(cr, uid,\
+                        context.get('default_partner_address_id'), ['name'])
             res['first_name'] = f_name['name']
-            res['partner_id'] = read_data['partner_id'] and read_data['partner_id'][0] or False
+            res['partner_id'] = read_data['partner_id'] and \
+                                read_data['partner_id'][0] or False
             context['default_partner_id'] = res['partner_id']
 
         if context and context.get("default_partner_id",False):
-            onchange_val = self.onchange_partner_id(cr, uid, [], context.get("default_partner_id"))
+            onchange_val = self.onchange_partner_id(cr, uid, [],\
+                                            context.get("default_partner_id"))
             res.update(onchange_val['value'])
-            addr = self.pool.get('res.partner').address_get(cr, uid, [int(context.get("default_partner_id"))], ['contact','default'])
+            addr = self.pool.get('res.partner').address_get(cr, uid,\
+                [int(context.get("default_partner_id"))], ['contact','default'])
             res['partner_address_id'] = addr['contact']
             if res.get('partner_address_id',False) and 'first_name' not in res:
-                f_name = self.pool.get('res.partner').read(cr, uid, res.get('partner_address_id'), ['name'])
+                f_name = self.pool.get('res.partner').read(cr, uid, \
+                                        res.get('partner_address_id'), ['name'])
                 res['first_name'] = f_name['name']
         return res
 
     def onchange_partner_id(self, cr, uid, ids, part, email=False):
         res = {}
         if not part:
-            return {'value' : {'email_from':False, 'phone':False, 'mobile':False}}
-        res = self.pool.get('res.partner').read(cr, uid, part, ['name','phone','mobile','email'])
-        return {'value' : {'email_from':res['email'], 'phone':res['phone'], 'mobile':res['mobile']}}
+            return {'value' : {'email_from':False, 'phone':False,\
+                                'mobile':False}}
+        res = self.pool.get('res.partner').read(cr, uid, part, \
+                                            ['name','phone','mobile','email'])
+        return {'value' : {'email_from':res['email'], 'phone':res['phone'],\
+                                            'mobile':res['mobile']}}
 
     def _set_short_desc(self, cr, uid, ids, name, arg, context=None):
         res = {}
@@ -132,30 +156,40 @@ class crm_task(base_state,osv.osv):
         'partner_id': fields.many2one('res.partner', 'Partner'),
         'company_id': fields.many2one('res.company', 'Company'),
         'partner_address_id': fields.many2one('res.partner', 'Partner Contact'),
-        'phone':fields.related('partner_id','phone',type="char", size=64, string="Phone"),
-        'mobile':fields.related('partner_id','mobile',type="char", size=64, string="Mobile"),
+        'phone':fields.related('partner_id','phone',type="char", size=64, \
+                               string="Phone"),
+        'mobile':fields.related('partner_id','mobile',type="char", size=64,\
+                                string="Mobile"),
         'description':fields.text('Description'),
-        'section_id': fields.many2one('crm.case.section', 'Sales Team', states={'done': [('readonly', True)]}, \
-                        select=True, help='Sales team to which Case belongs to.'),
+        'section_id': fields.many2one('crm.case.section', 'Sales Team',\
+                     states={'done': [('readonly', True)]}, \
+                     select=True, help='Sales team to which Case belongs to.'),
         'id': fields.integer('ID'),
-        'opportunity_id': fields.many2one ('crm.lead', 'Opportunity', domain="[('type', '=', 'opportunity')]"),
-        'email_from': fields.related('partner_id','email',type="char", size=64, string="Email"),
+        'opportunity_id': fields.many2one ('crm.lead', 'Opportunity',\
+                                     domain="[('type', '=', 'opportunity')]"),
+        'email_from': fields.related('partner_id','email',type="char", \
+                                     size=64, string="Email"),
         'create_date': fields.datetime('Creation Date'),
         'write_date': fields.datetime('Write Date'),
-        'user_delegated_id':fields.many2one('res.users','Delegated By', readonly=True),
-        'stage_id': fields.many2one('crm.case.stage', 'Stage', domain="[('type','=','task')]"),
+        'user_delegated_id':fields.many2one('res.users','Delegated By',\
+                                             readonly=True),
+        'stage_id': fields.many2one('crm.case.stage', 'Stage',\
+                                     domain="[('type','=','task')]"),
         'categ_id': fields.many2one('crm.case.categ', 'task Type', \
                         domain="[('object_id.model', '=', 'crm.task')]", \
             ),
         'duration': fields.float('Duration', digits=(16,2)),
         'date_closed': fields.datetime('Closed'),
-        'date_deadline': fields.datetime('Deadline', states={'done': [('readonly', True)]}),
+        'date_deadline': fields.datetime('Deadline', \
+                                         states={'done': [('readonly', True)]}),
         'priority': fields.selection([
                                       ('high','High'),
                                       ('medium','Medium'),
                                       ('low','Low') ], 'Priority'),
-        'message_ids': fields.one2many('mail.message', 'res_id', 'Messages', domain=[('model','=',_name)]),
-        'history_crm_fields_ids': fields.one2many('crm.field.history', 'task_id', 'Fields History', ),
+        'message_ids': fields.one2many('mail.message', 'res_id', 'Messages',\
+                                        domain=[('model','=',_name)]),
+        'history_crm_fields_ids': fields.one2many('crm.field.history', \
+                                            'task_id', 'Fields History', ),
         'state': fields.selection([('open', 'Confirmed'),
                                      ('draft', 'Unconfirmed'),
                                      ('cancel', 'Cancelled'),
@@ -169,23 +203,30 @@ class crm_task(base_state,osv.osv):
         'task_type':fields.selection([('t','Task'),('n','Note')],'Task Type'),
         'meeting_id':fields.many2one('crm.meeting','Meetings'),
         'owner_changed':fields.boolean('Owner Changed'),
-        'short_description': fields.function(_set_short_desc, type='text', method=True, string='Short Description',),
-        'current_datetime':fields.function(_get_current_datetime, method=True, type='datetime', string='Current DateTime', readonly=True,help="It represents Current Datetime"),
+        'short_description': fields.function(_set_short_desc, type='text',\
+                            method=True, string='Short Description',),
+        'current_datetime':fields.function(_get_current_datetime, method=True,\
+                            type='datetime', string='Current DateTime',\
+                            readonly=True,help="It represents Current Datetime"),
     }
 
     def _check_end_date(self, cr, uid, ids, context=None):
         ''' Validating the Task End Date: Task End Date should be greater than Start Date '''
         for task_obj in self.browse(cr, uid, ids, context=context):
             if task_obj.date and task_obj.date_deadline:
-                if task_obj.date_deadline.split(' ')[0] < task_obj.date.split(' ')[0]:
+                if task_obj.date_deadline.split(' ')[0] \
+                    < task_obj.date.split(' ')[0]:
                     return False
         return True
 
     _constraints = [
-        (_check_end_date, '\n"Task End Date" must be greater than "Task Start Date".', ['date_deadline']),
+        (_check_end_date, '\n"Task End Date" must be greater than\
+                         "Task Start Date".',\
+                         ['date_deadline']),
     ]
 
-    def onchange_dates(self, cr, uid, ids, start_date, duration=False, end_date=False, allday=False, context=None):
+    def onchange_dates(self, cr, uid, ids, start_date, duration=False, \
+                       end_date=False, allday=False, context=None):
         """Returns duration and/or end date based on values passed
         @param self: The object pointer
         @param cr: the current row, from the database cursor,
@@ -231,7 +272,8 @@ class crm_task(base_state,osv.osv):
         return {'value': value}
 
     def _get_stage(self, cr, uid, context={}):
-        ids = self.pool.get('crm.case.stage').search(cr, uid, [('type','=','task')] ,order='sequence')
+        ids = self.pool.get('crm.case.stage').search(cr, uid, 
+                                    [('type','=','task')] ,order='sequence')
         return ids and ids[0] or False
 
     _defaults = {
@@ -239,7 +281,8 @@ class crm_task(base_state,osv.osv):
         'active': 1,
         'user_id': lambda self, cr, uid, ctx: uid,
         'stage_id': _get_stage,
-        'company_id': lambda s, cr, uid, c: s.pool.get('res.company')._company_default_get(cr, uid, s._name, context=c),
+        'company_id': lambda s, cr, uid, c: s.pool.get('res.company').\
+                            _company_default_get(cr, uid, s._name, context=c),
         'description': " ",
     }
 
@@ -270,7 +313,8 @@ class crm_task(base_state,osv.osv):
                 id=base_calendar.base_calendar_id2real_id(id)
                 self.log(cr, uid, id, message)
 
-        self.write(cr, uid, ids, {'date_closed': time.strftime('%Y-%m-%d %H:%M:%S')})
+        self.write(cr, uid, ids, {'date_closed': \
+                                  time.strftime('%Y-%m-%d %H:%M:%S')})
         cases = self.browse(cr, uid, ids)
         for case in cases:
             data = {'state': 'done', 'active': True}
@@ -300,8 +344,10 @@ class crm_task(base_state,osv.osv):
                 return {'value':{'owner_changed':0}}
         return
 
-    def salesman_change_mail_notification_task(self, cr, uid, automatic=False, template=False,type='t', context=None,):
-        task_ids = self.search(cr, uid, [('owner_changed','=',True),('task_type','=',type)])
+    def salesman_change_mail_notification_task(self, cr, uid, automatic=False, \
+                                        template=False,type='t', context=None,):
+        task_ids = self.search(cr, uid, \
+                        [('owner_changed','=',True),('task_type','=',type)])
         if not task_ids :
             return True
         if not template:
@@ -313,15 +359,19 @@ class crm_task(base_state,osv.osv):
             raise osv.except_osv(_('Invalid Template !'),
                         _('No Template Found for the given name %s!')%template)
         for task_id in task_ids:
-            action = template_obj.send_mail(cr,uid,so_template[0],task_id,context)
+            action=template_obj.send_mail(cr,uid,so_template[0],task_id,context)
         self.write(cr, uid, task_ids, {'owner_changed':False})
         return True
 
-    def task_idel_reminder(self, cr, uid, automatic=False, template=False, no_of_days=0, type='t',no_of_reminder=1, context=None):
+    def task_idel_reminder(self, cr, uid, automatic=False, template=False, \
+                        no_of_days=0, type='t',no_of_reminder=1, context=None):
         d1 = date.today()
         d2 = str(d1 - timedelta(days=no_of_days))
-        task_ids = self.search(cr, uid, [('state','not in',('done','cancel')),('create_date','<',d2),('task_type','=',type)])
-        cr.execute("SELECT count(res_id),res_id from cron_mail_sent where res_model='%s' and cron_name='%s' group by res_id "%(self._name,'task_idel_reminder'))
+        task_ids = self.search(cr, uid, [('state','not in',('done','cancel')),\
+                                ('create_date','<',d2),('task_type','=',type)])
+        cr.execute("SELECT count(res_id),res_id from cron_mail_sent where"\
+        "res_model='%s' and cron_name='%s' group by res_id "%(self._name,\
+                                                        'task_idel_reminder'))
         line_ids = map(lambda x: x, cr.fetchall())
         line_ids = [x[1] for x in line_ids if x[0] >= no_of_reminder]
         task_ids = list( set(task_ids) - set(line_ids))
@@ -338,13 +388,15 @@ class crm_task(base_state,osv.osv):
                         _('No Template Found for the given name %s!')%template)
 
         for task_id in task_ids:
-            action = template_obj.send_mail(cr,uid,so_template[0], task_id,context)
+            action = template_obj.send_mail(cr,uid,so_template[0], \
+                                            task_id,context)
             self.pool.get('cron.mail.sent').create(cr, uid, {
                     'res_model':'%s'%(self._name),
                     'res_id':task_id,
                     'cron_name':'task_idel_reminder',
                     })
         return True
+
 crm_task()
 
 
@@ -358,4 +410,6 @@ class crm_case_stage(osv.osv):
     _columns = {
             'type': fields.selection(_get_type_value, 'Type'),
     }
+
 crm_case_stage()
+# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -2,3 +2,4 @@
 "access_partner_responsibility","partner_responsibility","model_partner_responsibility","base.group_user",1,1,1,0
 access_lead_address_line,lead.address.line,model_lead_address_line,base.group_user,1,1,1,1
 access_crm_task,crm.task,model_crm_task,base.group_user,1,1,1,1
+"access_vnc_ose_region_region","vnc.ose.region.region","model_region_region","base.group_user",1,1,1,0

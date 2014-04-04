@@ -769,8 +769,26 @@ class res_partner(osv.osv):
                 revised_element = {}
                 found_ids = self.search(cr, uid, [('zcontact_id','=',\
                             element.has_key('id') and element['id'] or False)])
-                element.update({'country_id': False,'state_id': False,
-                'zcontact_id': element.has_key('id') and element['id'] or False})
+
+                if element.has_key('country_id') or element.has_key('state_id'):
+                    cr.execute("SELECT id from res_country_state where \
+                                LOWER(name)=LOWER('%s')"%(element['state_id']))
+                    state_ids = map(lambda x: x, cr.fetchall())
+                    if state_ids and state_ids[0]:
+                        element.update({'state_id': state_ids[0][0]})
+                    else:
+                        element.update({'state_id': False})
+
+                    cr.execute("SELECT id from res_country where \
+                            LOWER(name)=LOWER('%s')"%(element['country_id']))
+                    country_ids = map(lambda x: x, cr.fetchall())
+                    if country_ids and country_ids[0]:
+                        element.update({'country_id': country_ids[0][0]})
+                    else:
+                        element.update({'country_id': False})
+
+                element.update({'zcontact_id': element.has_key('id') \
+                                 and element['id'] or False})
                 for key,val in element.iteritems():
                     if val == 'False':
                         val = False

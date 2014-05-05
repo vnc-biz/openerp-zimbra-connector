@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-import pooler
-from tools.translate import _
+# import pooler
+from openerp.tools.translate import _
 from datetime import datetime, timedelta, date
-from osv import fields, osv
-import tools
-from tools.translate import _
+from openerp.osv import fields, osv
+from openerp import tools
 import time
 import pytz
 

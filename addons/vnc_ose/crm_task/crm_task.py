@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-from base_calendar import base_calendar
-from openerp.addons.base_status.base_state import base_state
-from osv import fields, osv
-from tools.translate import _
+# from base_calendar import base_calendar
+# from openerp.addons.base_status.base_state import base_state
+from openerp.osv import fields, osv
+from openerp.tools.translate import _
 import logging
-from crm import crm
+from openerp.addons.crm import crm
 from datetime import datetime, timedelta, date
 import time
 
@@ -27,7 +27,7 @@ class crm_field_history(osv.osv):
 crm_field_history()
 
 
-class crm_task(base_state,osv.osv):
+class crm_task(osv.osv):
     """ CRM task Cases """
     _name = 'crm.task'
     _description = "Task"

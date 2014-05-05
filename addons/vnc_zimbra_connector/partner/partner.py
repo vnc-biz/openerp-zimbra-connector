@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
-from osv import fields, osv
+from openerp.osv import fields, osv
 import base64
 import email
-import tools
+from openerp import tools
 import binascii
 import dateutil.parser
 import vobject
-from base_calendar import base_calendar
+# from base_calendar import base_calendar
 from datetime import datetime
 import re
-import pooler
+# import pooler
 from email.header import decode_header
 import time
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT

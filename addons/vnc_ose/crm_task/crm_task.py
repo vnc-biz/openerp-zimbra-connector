@@ -219,7 +219,7 @@ class crm_task(osv.osv):
         'first_name':fields.char('First Name',size=256),
         'last_name':fields.char('Last Name',size=256),
         'task_type':fields.selection([('t','Task'),('n','Note')],'Task Type'),
-        'meeting_id':fields.many2one('crm.meeting','Meetings'),
+        'meeting_id':fields.many2one('calendar.event','Meetings'),
         'owner_changed':fields.boolean('Owner Changed'),
         'short_description': fields.function(_set_short_desc, type='text',\
                             method=True, string='Short Description',),

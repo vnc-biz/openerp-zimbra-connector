@@ -45,7 +45,7 @@
             <field name="help">Create different task categories to better organize and classify your tasks.</field>
         </record>
         <menuitem action="crm_task_categ_action" id="menu_crm_case_task-act"
-            parent="base.menu_calendar_configuration" sequence="1" />
+            parent="calendar.menu_calendar_configuration" sequence="1" />
         <!-- CRM tasks Form View -->
         <record model="ir.ui.view" id="crm_case_form_view_meet">
             <field name="name">crm.task.form</field>

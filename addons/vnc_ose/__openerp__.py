@@ -9,7 +9,7 @@
     "description": """Customized module for CRM AND Zimbra Connector
     Openerp Version 7
     """,
-    "update_xml": [
+    "data": [
            'security/ir.model.access.csv',
            "partner_view.xml",
            "crm_task/crm_task_view.xml",

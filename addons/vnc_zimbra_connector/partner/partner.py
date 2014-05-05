@@ -582,7 +582,7 @@ class zimbra_partner(osv.osv_memory):
         """
         vals_dict = dict(vals)
         context = {}
-        cal_pool = self.pool.get('crm.meeting')
+        cal_pool = self.pool.get('calendar.event')
         obj_name = vals_dict['ref_ids'].split(',')[0]
         if vals_dict['ref_ids'].split(',') and \
                     len(vals_dict['ref_ids'].split(',')) > 1:
@@ -609,7 +609,7 @@ class zimbra_partner(osv.osv_memory):
             return False
         else:
             pass
-        self_ids = self.pool.get('crm.meeting').search(cr,uid,\
+        self_ids = self.pool.get('calendar.event').search(cr,uid,\
                                                 [('ext_meeting_id','=',vals)])
         if self_ids:
             self.meeting_push(cr, uid, vals)
@@ -620,7 +620,7 @@ zimbra_partner()
 
 
 class crm_meeting(osv.osv):
-    _inherit = 'crm.meeting'
+    _inherit = 'calendar.event'
     _columns = {
                 'ext_meeting_id':fields.char('External Meeting ID',size=256)
                 }
@@ -681,7 +681,7 @@ class crm_meeting(osv.osv):
         if context is None:
             context= {}
         event_obj = self.pool.get('basic.calendar.event')
-        context.update({'model':'crm.meeting'})
+        context.update({'model':'calendar.event'})
         vals = event_obj.import_cal(cr, uid, data, context=context)
         return self.check_import(cr, uid, vals, context=context)
 

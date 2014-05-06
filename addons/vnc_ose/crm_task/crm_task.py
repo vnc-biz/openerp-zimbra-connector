@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# from base_calendar import base_calendar
+from openerp.addons.calendar import calendar
 # from openerp.addons.base_status.base_state import base_state
 from openerp.osv import fields, osv
 from openerp.tools.translate import _
@@ -7,7 +7,9 @@ import logging
 from openerp.addons.crm import crm
 from datetime import datetime, timedelta, date
 import time
+import logging
 
+_logger = logging.getLogger(__name__)
 
 class crm_field_history(osv.osv):
     _name = 'crm.field.history'
@@ -304,6 +306,12 @@ class crm_task(osv.osv):
         'description': " ",
     }
 
+    def log(self, cr, uid, id, message, secondary=False, context=None):
+        if context is None: context = {}
+        if not context.has_key('default_date'):
+            context.update({'default_date': time.strftime("%Y-%m-%d")})
+        self.message_post(cr, uid, [id], message, context=context)
+
     def case_open(self, cr, uid, ids, *args):
         """Confirms task
         @param self: The object pointer
@@ -315,7 +323,7 @@ class crm_task(osv.osv):
         if ids:
             for (id, name) in self.name_get(cr, uid, ids):
                 message = _("The task '%s' has been confirmed.") % name
-                id=base_calendar.base_calendar_id2real_id(id)
+                id=calendar.calendar_id2real_id(id)
                 self.log(cr, uid, id, message)
             cases = self.browse(cr, uid, ids)
             for case in cases:
@@ -328,7 +336,7 @@ class crm_task(osv.osv):
     def case_close(self, cr, uid, ids, *args):
         for (id, name) in self.name_get(cr, uid, ids):
                 message = _("The task '%s' has been closed.") % name
-                id=base_calendar.base_calendar_id2real_id(id)
+                id=calendar.calendar_id2real_id(id)
                 self.log(cr, uid, id, message)
 
         self.write(cr, uid, ids, {'date_closed': \

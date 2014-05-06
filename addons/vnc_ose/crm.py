@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# import pooler
 from openerp.tools.translate import _
 from datetime import datetime, timedelta, date
 from openerp.osv import fields, osv

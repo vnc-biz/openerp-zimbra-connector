@@ -6,7 +6,7 @@ from openerp import tools
 import binascii
 import dateutil.parser
 import vobject
-# from base_calendar import base_calendar
+from openerp.addons.calendar import calendar
 from datetime import datetime
 import re
 # import pooler

@@ -101,12 +101,12 @@ class crm_task(osv.osv):
         """
         res = super(crm_task,self).default_get( cr, uid, fields, \
                                                 context=context)
-        if res and res.has_key('user_id'):
-            res['section_id'] = self.pool.get('res.users').browse(cr, uid, \
-                                                res['user_id']).section_id.id
-        else:
-            res['section_id'] = self.pool.get('crm.case.section').search(cr, uid,\
-                                         [('name','=','Sales Department')])[0]
+        user_id = uid
+        if res and res.has_key('user_id') and res['user_id'] != False:
+            user_id = res.has_key('user_id')
+        user = self.pool.get('res.users').browse(cr, uid, user_id, context)
+        user_section = user.section_id and user.section_id.id or False
+        res['section_id'] = user_section
 
         if context and 'default_opportunity_id' in context and \
                                             context['default_opportunity_id']:

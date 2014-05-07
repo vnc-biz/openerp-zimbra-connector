@@ -14,7 +14,7 @@ class crm_lead(osv.osv):
                 'contact_last_name':fields.char('Last Name',size=128),
                 }
 
-    def on_change_partner(self, cr, uid, ids, partner_id, context={}):
+    def on_change_partner_id(self, cr, uid, ids, partner_id, context={}):
         lead_addrs = []
         values = {'lead_add_line': False, 'partner_name' : False,\
            'contact_name' : False, 'contact_last_name':False,\
@@ -23,7 +23,7 @@ class crm_lead(osv.osv):
            'phone' : False, 'mobile' : False, 'fax' : False,
            'partner_address_id': False}
         if partner_id:
-            values = super(crm_lead, self).on_change_partner(cr, uid, ids, \
+            values = super(crm_lead, self).on_change_partner_id(cr, uid, ids, \
                                 partner_id=partner_id, context=context)['value']
             partner = self.pool.get('res.partner').browse(cr, uid, \
                                                     partner_id, context=context)

@@ -1,6 +1,39 @@
 <?xml version="1.0"?>
 <openerp>
     <data>
+    
+        <!-- CRM Fields History Views-->
+        <record id="view_crm_field_historyl_tree" model="ir.ui.view">
+            <field name="name">crm.fields.history.tree</field>
+            <field name="model">crm.field.history</field>
+            <field name="arch" type="xml">
+                <tree string="Fields History">
+                    <field name="value_after" />
+                    <field name="value_before" />
+                    <field name="user_id" />
+                    <field name="create_date" />
+                    <field name="field_name" />
+                </tree>
+            </field>
+        </record>
+        <record id="view_model_form" model="ir.ui.view">
+            <field name="name">crm.fields.history.form</field>
+            <field name="model">crm.field.history</field>
+            <field name="arch" type="xml">
+                <form string="Fields History" version="7.0">
+                    <sheet>
+                        <group>
+                            <field name="value_after" />
+                            <field name="value_before" />
+                            <field name="user_id" />
+                            <field name="create_date" />
+                            <field name="field_name" />
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        
         <!-- CRM tasks Categories Form View -->
         <record id="crm_task_categ_action" model="ir.actions.act_window">
             <field name="name">Task Categories</field>

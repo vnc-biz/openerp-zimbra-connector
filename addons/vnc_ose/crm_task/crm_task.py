@@ -9,6 +9,24 @@ from datetime import datetime, timedelta, date
 import time
 
 
+class crm_field_history(osv.osv):
+    _name = 'crm.field.history'
+    _description = 'CRM Fields History'
+    _rec_name = 'value_after'
+    _order = 'create_date desc'
+    _columns = {
+        'value_after':fields.char('Value After', size=256),
+        'value_before':fields.char('Value Before', size=256),
+        'create_date': fields.datetime('Creation Date' , readonly=True),
+        'lead_id':fields.many2one('crm.lead','Lead/Opportunity'),
+        'task_id':fields.many2one('crm.task', 'Task'),
+        'user_id':fields.many2one('res.users','User'),
+        'field_name':fields.char('Field name',size=256),
+    }
+
+crm_field_history()
+
+
 class crm_task(base_state,osv.osv):
     """ CRM task Cases """
     _name = 'crm.task'

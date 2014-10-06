@@ -851,6 +851,14 @@ class res_partner(osv.osv):
                                                  {'delete_items':data_write})
         return super(res_partner, self).unlink(cr, uid, ids, context=context)
 
+    def name_create(self, cr, uid, name, context=None):
+        """ Override of orm's name_create method for partners. The purpose is
+            to handle some basic formats to create partners using the
+            name_create.
+            It will duplicate name to first_name """
+        rec_id = self.create(cr, uid, {self._rec_name: name, 'first_name': name}, context=context)
+        return self.name_get(cr, uid, [rec_id], context)[0]
+
     def create(self, cr, uid, vals, context=None):
         if vals.get('is_company') != True:
             if vals.get('first_name') or vals.get('middle_name') or \

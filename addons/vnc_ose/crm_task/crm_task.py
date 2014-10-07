@@ -33,8 +33,8 @@ class crm_task(osv.osv):
     """ CRM task Cases """
     _name = 'crm.task'
     _description = "Task"
-    _order = "date asc"
-    _inherit = ["calendar.event"]
+    _order = "start_datetime asc"
+    _inherit = "calendar.event"
     _check_fields = ['user_id']
 
     def check_fields(self, cr, uid, ids, vals, context={}):
@@ -64,15 +64,15 @@ class crm_task(osv.osv):
     def write(self, cr, uid, ids, vals, context={}):
         if not isinstance(ids, (list,tuple)):
             ids = [ids]
-        old_datas = self.read(cr, uid, ids, ['user_id','date','date_deadline'],\
+        old_datas = self.read(cr, uid, ids, ['user_id','start_datetime','stop_datetime'],\
                     context=context)
         for old_data in old_datas:
             if not old_data['user_id'] or ('user_id' in vals and \
                                     vals['user_id'] != old_data['user_id'][0]):
                 vals['user_delegated_id'] = uid
                 self.check_fields(cr, uid, old_data['id'], vals, context)
-            # Copying date to date_deadline if it is False, calling onchage will return the date_deadline
-            if not old_data['date_deadline'] and old_data['date']:
+            # Copying date to stop_datetime if it is False, calling onchage will return the stop_datetime
+            if not old_data['stop_datetime'] and old_data['start_datetime']:
                 date = self.browse(cr, uid, ids[0]).date
                 data = self.onchange_dates(cr, uid, ids[0], date, duration=2,\
                                             context=context)
@@ -86,10 +86,10 @@ class crm_task(osv.osv):
         res = super(crm_task, self).create(cr, uid, vals, context=context)
         if vals and 'user_id' in vals and vals['user_id'] != uid:
             self.check_fields(cr, uid, res, vals, context)
-        # Copying date to date_deadline if it is False, calling onchage will return the date_deadline
-        if vals.get('date_deadline',False) == False:
-            if vals.get('date',False):
-                data = self.onchange_dates(cr, uid, [], vals['date'],\
+        # Copying date to stop_datetime if it is False, calling onchage will return the stop_datetime
+        if vals.get('stop_datetime',False) == False:
+            if vals.get('start_datetime',False):
+                data = self.onchange_dates(cr, uid, [], vals['start_datetime'],\
                                             duration=2, context=context)
                 vals.update(data['value'])
         return res
@@ -101,9 +101,10 @@ class crm_task(osv.osv):
         """
         res = super(crm_task,self).default_get( cr, uid, fields, \
                                                 context=context)
+        
         user_id = uid
         if res and res.has_key('user_id') and res['user_id'] != False:
-            user_id = res.has_key('user_id')
+            user_id = res['user_id']
         user = self.pool.get('res.users').browse(cr, uid, user_id, context)
         user_section = user.section_id and user.section_id.id or False
         res['section_id'] = user_section
@@ -116,10 +117,11 @@ class crm_task(osv.osv):
                                      ['partner_id','partner_address_id'])
             res['partner_id'] = crm_Data['partner_id'] and \
                                 crm_Data['partner_id'][0] or False
-            context['default_partner_address_id'] = False
-            context['default_partner_id'] = res['partner_id']
+            if 'partner_id' in crm_Data and crm_Data.get('partner_id'):
+                context.update({'default_partner_address_id': False})
+                context.update({'default_partner_id': res['partner_id']})
 
-        if context and context.get('default_partner_address_id',False):
+        if context and context.get('default_partner_address_id'):
             read_data = self.pool.get('res.partner').read(cr, uid,\
                         context.get('default_partner_address_id'))
             f_name = self.pool.get('res.partner').read(cr, uid,\
@@ -129,7 +131,7 @@ class crm_task(osv.osv):
                                 read_data['partner_id'][0] or False
             context['default_partner_id'] = res['partner_id']
 
-        if context and context.get("default_partner_id",False):
+        if context and context.get("default_partner_id"):
             onchange_val = self.onchange_partner_id(cr, uid, [],\
                                             context.get("default_partner_id"))
             res.update(onchange_val['value'])
@@ -173,6 +175,7 @@ class crm_task(osv.osv):
         'crm_id':fields.char('CRM ID',size=256),
         'name': fields.char('Summary', size=124),
         'date': fields.datetime("Date"),
+        'start_datetime': fields.datetime("Date"),
         'partner_id': fields.many2one('res.partner', 'Partner'),
         'company_id': fields.many2one('res.company', 'Company'),
         'partner_address_id': fields.many2one('res.partner', 'Partner Contact'),
@@ -200,8 +203,8 @@ class crm_task(osv.osv):
             ),
         'duration': fields.float('Duration', digits=(16,2)),
         'date_closed': fields.datetime('Closed'),
-        'date_deadline': fields.datetime('Deadline', \
-                                         states={'done': [('readonly', True)]}),
+        'stop_datetime': fields.datetime('End Datetime', states={'done': [('readonly', True)]}, \
+                                         track_visibility='onchange'),
         'priority': fields.selection([
                                       ('high','High'),
                                       ('medium','Medium'),
@@ -222,19 +225,22 @@ class crm_task(osv.osv):
         'last_name':fields.char('Last Name',size=256),
         'task_type':fields.selection([('t','Task'),('n','Note')],'Task Type'),
         'meeting_id':fields.many2one('calendar.event','Meetings'),
+        'meeting_ids': fields.many2many('crm.task', 'calendar_event_res_partner_rel1','res_partner_id', 'crm_task_id',
+            'Meetings'),
         'owner_changed':fields.boolean('Owner Changed'),
         'short_description': fields.function(_set_short_desc, type='text',\
                             method=True, string='Short Description',),
         'current_datetime':fields.function(_get_current_datetime, method=True,\
                             type='datetime', string='Current DateTime',\
                             readonly=True,help="It represents Current Datetime"),
+        'partner_ids': fields.many2many('res.partner', 'calendar_event_res_partner_rel1', string='Attendees', states={'done': [('readonly', True)]}),
     }
 
     def _check_end_date(self, cr, uid, ids, context=None):
         ''' Validating the Task End Date: Task End Date should be greater than Start Date '''
         for task_obj in self.browse(cr, uid, ids, context=context):
-            if task_obj.date and task_obj.date_deadline:
-                if task_obj.date_deadline.split(' ')[0] \
+            if task_obj.date and task_obj.stop_datetime:
+                if task_obj.stop_datetime.split(' ')[0] \
                     < task_obj.date.split(' ')[0]:
                     return False
         return True
@@ -242,7 +248,7 @@ class crm_task(osv.osv):
     _constraints = [
         (_check_end_date, '\n"Task End Date" must be greater than\
                          "Task Start Date".',\
-                         ['date_deadline']),
+                         ['stop_datetime']),
     ]
 
     def onchange_dates(self, cr, uid, ids, start_date, duration=False, \
@@ -280,7 +286,7 @@ class crm_task(osv.osv):
             value['duration'] = round(duration, 2)
         elif not end_date:
             end = start + timedelta(hours=duration)
-            value['date_deadline'] = end.strftime("%Y-%m-%d %H:%M:%S")
+            value['stop_datetime'] = end.strftime("%Y-%m-%d %H:%M:%S")
         elif end_date and duration and not allday:
             # we have both, keep them synchronized:
             #test_theraline set duration based on end_date (arbitrary decision: this avoid

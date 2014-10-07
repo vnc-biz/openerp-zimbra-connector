@@ -5,41 +5,13 @@ from icalendar import Calendar, Event, Todo
 import datetime as DT
 from datetime import date
 import hashlib
+
+import werkzeug.serving
+import werkzeug.contrib.fixers
+
 import openerp
 import pytz
 import urllib2
-
-
-def xmlrpc_return(start_response, service, method, params, \
-                  legacy_exceptions=False):
-    """
-    Helper to call a service's method with some params, using a wsgi-supplied
-    ``start_response`` callback.
-    This is the place to look at to see the mapping between core exceptions
-    and XML-RPC fault codes.
-    """
-    # Map OpenERP core exceptions to XML-RPC fault codes. Specific exceptions
-    # defined in ``openerp.exceptions`` are mapped to specific fault codes;
-    # all the other exceptions are mapped to the generic
-    # RPC_FAULT_CODE_APPLICATION_ERROR value.
-    # This also mimics SimpleXMLRPCDispatcher._marshaled_dispatch() for
-    # exception handling.
-    try:
-        result = openerp.netsvc.dispatch_rpc(service, method, params)
-        if service == 'db':
-            import re
-            r = openerp.tools.config['dbfilter']
-            result = [i for i in result if re.match(r, i)]
-        response = xmlrpclib.dumps((result,), methodresponse=1, \
-                                   allow_none=False, encoding=None)
-    except Exception, e:
-        if legacy_exceptions:
-            response = wsgi_server.xmlrpc_handle_exception_legacy(e)
-        else:
-            response = wsgi_server.xmlrpc_handle_exception(e)
-    start_response("200 OK", [('Content-Type','text/xml'),\
-                              ('Content-Length', str(len(response)))])
-    return [response]
 
 def application(environ, start_response):
     if environ.get('PATH_INFO') in ['/task', '/calendar']:
@@ -115,7 +87,7 @@ def make_service_call(host, port, username, pwd, dbname, option):
         task_ids = sock.execute(dbname, uid, pwd, 'crm.task', 'search',\
                              [('task_type', '=', 't'), ('user_id', '=', uid)])
         task_data = sock.execute(dbname, uid, pwd, 'crm.task', 'read', task_ids,\
-                    ['name','description','date','date_deadline',\
+                    ['name','description','start_datetime','stop_datetime',\
                      'priority','state','location','write_date'])
 
         def ics_datetime(idate):
@@ -135,14 +107,14 @@ def make_service_call(host, port, username, pwd, dbname, option):
             todo = Todo()
             todo.add('summary', data['name'])
             todo.add('description', data['description'])
-            if data['date']:
-                todo.add('DTSTART', ics_datetime(data['date']))
+            if data['start_datetime']:
+                todo.add('DTSTART', ics_datetime(data['start_datetime']))
             else:
-                todo.add('DTSTART', ics_datetime(data['date_deadline']))
-            if data['date_deadline']:
-                todo.add('DUE', ics_datetime(data['date_deadline']))
+                todo.add('DTSTART', ics_datetime(data['stop_datetime']))
+            if data['stop_datetime']:
+                todo.add('DUE', ics_datetime(data['stop_datetime']))
             else:
-                todo.add('DUE', ics_datetime(data['date']))
+                todo.add('DUE', ics_datetime(data['start_datetime']))
             if data['write_date']:
                 todo.add('DTSTAMP', DT.datetime.strptime(data['write_date'],\
                                                           '%Y-%m-%d %H:%M:%S'))
@@ -176,7 +148,7 @@ def make_service_call(host, port, username, pwd, dbname, option):
                                  [('user_id','=',uid)])
         event_data = sock.execute(dbname, uid, pwd, 'calendar.event', 'read',\
                      event_ids,['show_as','allday','name','description',\
-                            'date','date_deadline','location','write_date'])
+                            'start_datetime','stop_datetime','location','write_date'])
         def ics_datetime(idate):
             if idate:
                 #returns the datetime as UTC, because it is stored as it in the database
@@ -190,15 +162,15 @@ def make_service_call(host, port, username, pwd, dbname, option):
         cal.add('METHOD', 'PUBLISH')
         for data in event_data:
             event = Event()
-            if data['date_deadline'] and data['date'] and data['allday']:
+            if data['stop_datetime'] and data['start_datetime'] and data['allday']:
                 event.add('CREATED', date.today())
-                event.add('DTSTART', ics_datetime(data['date']))
-                event.add('DTEND', ics_datetime(data['date_deadline']))
+                event.add('DTSTART', ics_datetime(data['start_datetime']))
+                event.add('DTEND', ics_datetime(data['stop_datetime']))
                 event.add('X-MICROSOFT-CDO-ALLDAYEVENT', 'TRUE')
             else:
                 event.add('CREATED', date.today())
-                event.add('DTSTART', ics_datetime(data['date']))
-                event.add('DTEND', ics_datetime(data['date_deadline']))
+                event.add('DTSTART', ics_datetime(data['start_datetime']))
+                event.add('DTEND', ics_datetime(data['stop_datetime']))
                 event.add('X-MICROSOFT-CDO-ALLDAYEVENT', 'FALSE')
             if data['write_date']:
                 event.add('DTSTAMP', DT.datetime.strptime(data['write_date'],\
@@ -217,5 +189,4 @@ def make_service_call(host, port, username, pwd, dbname, option):
         return cal.to_ical()
 
 wsgi_server.application = application
-wsgi_server.xmlrpc_return = xmlrpc_return
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

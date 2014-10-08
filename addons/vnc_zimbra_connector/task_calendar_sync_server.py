@@ -148,7 +148,7 @@ def make_service_call(host, port, username, pwd, dbname, option):
                                  [('user_id','=',uid)])
         event_data = sock.execute(dbname, uid, pwd, 'calendar.event', 'read',\
                      event_ids,['show_as','allday','name','description',\
-                            'start_datetime','stop_datetime','location','write_date'])
+                            'start_datetime','stop_datetime','location','write_date','start_date','stop_date'])
         def ics_datetime(idate):
             if idate:
                 #returns the datetime as UTC, because it is stored as it in the database
@@ -162,10 +162,10 @@ def make_service_call(host, port, username, pwd, dbname, option):
         cal.add('METHOD', 'PUBLISH')
         for data in event_data:
             event = Event()
-            if data['stop_datetime'] and data['start_datetime'] and data['allday']:
+            if data['allday']:
                 event.add('CREATED', date.today())
-                event.add('DTSTART', ics_datetime(data['start_datetime']))
-                event.add('DTEND', ics_datetime(data['stop_datetime']))
+                event.add('DTSTART', DT.datetime.combine(DT.datetime.strptime(data['start_date'], '%Y-%m-%d'), DT.time.min))
+                event.add('DTEND', DT.datetime.combine(DT.datetime.strptime(data['start_date'], '%Y-%m-%d'), DT.time.max))
                 event.add('X-MICROSOFT-CDO-ALLDAYEVENT', 'TRUE')
             else:
                 event.add('CREATED', date.today())

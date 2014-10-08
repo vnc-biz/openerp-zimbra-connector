@@ -29,6 +29,72 @@ class crm_field_history(osv.osv):
 crm_field_history()
 
 
+
+class calendar_event(osv.Model):
+    """ Model for Calendar Event """
+    _inherit = 'calendar.event'
+    
+    def create_attendees(self, cr, uid, ids, context):
+        user_obj = self.pool['res.users']
+        current_user = user_obj.browse(cr, uid, uid, context=context)
+        res = {}
+        if context.has_key('crm_task') and context.get('crm_task'):
+            return res
+        for event in self.browse(cr, uid, ids, context):
+            attendees = {}
+            for att in event.attendee_ids:
+                attendees[att.partner_id.id] = True
+            new_attendees = []
+            new_att_partner_ids = []
+            for partner in event.partner_ids:
+                if partner.id in attendees:
+                    continue
+                access_token = self.new_invitation_token(cr, uid, event, partner.id)
+                values = {
+                    'partner_id': partner.id,
+                    'event_id': event.id,
+                    'access_token': access_token,
+                    'email': partner.email,
+                }
+
+                if partner.id == current_user.partner_id.id:
+                    values['state'] = 'accepted'
+
+                att_id = self.pool['calendar.attendee'].create(cr, uid, values, context=context)
+                new_attendees.append(att_id)
+                new_att_partner_ids.append(partner.id)
+
+                if not current_user.email or current_user.email != partner.email:
+                    mail_from = current_user.email or tools.config.get('email_from', False)
+                    if self.pool['calendar.attendee']._send_mail_to_attendees(cr, uid, att_id, email_from=mail_from, context=context):
+                        self.message_post(cr, uid, event.id, body=_("An invitation email has been sent to attendee %s") % (partner.name,), subtype="calendar.subtype_invitation", context=context)
+
+            if new_attendees:
+                self.write(cr, uid, [event.id], {'attendee_ids': [(4, att) for att in new_attendees]}, context=context)
+            if new_att_partner_ids:
+                self.message_subscribe(cr, uid, [event.id], new_att_partner_ids, context=context)
+
+            # We remove old attendees who are not in partner_ids now.
+            all_partner_ids = [part.id for part in event.partner_ids]
+            all_part_attendee_ids = [att.partner_id.id for att in event.attendee_ids]
+            all_attendee_ids = [att.id for att in event.attendee_ids]
+            partner_ids_to_remove = map(lambda x: x, set(all_part_attendee_ids + new_att_partner_ids) - set(all_partner_ids))
+
+            attendee_ids_to_remove = []
+
+            if partner_ids_to_remove:
+                attendee_ids_to_remove = self.pool["calendar.attendee"].search(cr, uid, [('partner_id.id', 'in', partner_ids_to_remove), ('event_id.id', '=', event.id)], context=context)
+                if attendee_ids_to_remove:
+                    self.pool['calendar.attendee'].unlink(cr, uid, attendee_ids_to_remove, context)
+
+            res[event.id] = {
+                'new_attendee_ids': new_attendees,
+                'old_attendee_ids': all_attendee_ids,
+                'removed_attendee_ids': attendee_ids_to_remove
+            }
+        return res
+calendar_event()
+
 class crm_task(osv.osv):
     """ CRM task Cases """
     _name = 'crm.task'
@@ -80,6 +146,7 @@ class crm_task(osv.osv):
         return super(crm_task, self).write(cr, uid, ids, vals, context=context)
 
     def create(self, cr, uid, vals, context={}):
+        context.update({'crm_task':True})
         if vals and 'user_id' in vals and vals['user_id'] != uid:
             vals['user_delegated_id'] = uid
 

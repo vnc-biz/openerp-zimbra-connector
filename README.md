@@ -4,11 +4,14 @@
 
 ###Dependencies###
 
-* apt-get install python-markdown
-### python-markdown [version 2.3.1 and above] ###
-* apt-get install python-smartypants
-### python-smartypants [version 1.6.0.3 and above] ###
-* easy_install icalendar
-### version icalendar 3.5 and above ###
+* python-markdown [version 2.3.1 and above]
+* python-smartypants [version 1.6.0.3 and above]
+* python-icalendar [version 3.5 and above]
+
+just run:
+
+sudo pip-2.7 install -r requirements.txt
 
 (to get easy_install : apt-get install python-setuptools)
+
+

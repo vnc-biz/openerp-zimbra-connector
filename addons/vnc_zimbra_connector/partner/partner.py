@@ -874,7 +874,14 @@ class res_partner(osv.osv):
             to handle some basic formats to create partners using the
             name_create.
             It will duplicate name to first_name """
-        rec_id = self.create(cr, uid, {self._rec_name: name, 'first_name': name}, context=context)
+        str = name.split(' ',1)
+        first_name = last_name = ''
+        if len(str) > 1:
+            first_name = str and str[0]
+            last_name = str and str[1]
+        elif len(str) == 1:
+            first_name = name
+        rec_id = self.create(cr, uid, {self._rec_name: name, 'first_name': first_name, 'last_name': last_name}, context=context)
         return self.name_get(cr, uid, [rec_id], context)[0]
 
     def create(self, cr, uid, vals, context=None):

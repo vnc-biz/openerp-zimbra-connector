@@ -174,7 +174,6 @@ openerp.vnc_zimbra_connector = function (instance) {
     	     */
     	    add_id: function(id) {},
     	    _create_context: function(name) {
-    	    	console.log("MY FUNCTION CALLEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDd")
     	    	var tmp = {};
     	    	if(this.name == 'partner_id'){
     	    		str = name.split(' ')

@@ -889,7 +889,7 @@ class res_partner(osv.osv):
             if vals.get('first_name') or vals.get('middle_name') or \
                                         vals.get('last_name'):
                 vals['name'] = (vals.get('first_name') or "") + ' '+  \
-                                (vals.get('middle_name') and vals.get('middle_name') + ' ' or "") \
+                                (vals.get('middle_name') and vals.get('middle_name') + ' ' or "") +\
                                 (vals.get('last_name') or "")
         else:
             vals['first_name'] = vals['name']
@@ -915,7 +915,7 @@ class res_partner(osv.osv):
                     f_name=vals.get('first_name') or  data['first_name'] or ''
                     m_name=vals.get('middle_name') or data['middle_name'] or ''
                     l_name=vals.get('last_name') or data['last_name'] or ''
-                    vals['name'] = (f_name or "") + ' '+  (m_name and m_name + ' ' or "") \
+                    vals['name'] = (f_name or "") + ' '+  (m_name and m_name + ' ' or "") +\
                                     (l_name or "")
                     vals['name'] = vals['name'].strip()
             else:

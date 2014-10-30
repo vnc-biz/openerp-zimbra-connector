@@ -181,8 +181,12 @@ openerp.vnc_zimbra_connector = function (instance) {
     	    			tmp["default_first_name"] = str[0]
     	    			last_name = ''
     	    			for(i=1;i<str.length;i++){
-    	    				last_name= last_name + " " + str[i]
-    	    			}
+    	    				if(last_name){
+    	    					last_name= last_name + " " + str[i]
+    	    				}else{
+    	    					last_name= str[i]
+    	    				}
+    	    			}    	    			
     	    			tmp["default_last_name"] = last_name
     	    		}else if(str.length == 1){
     	    			tmp["default_first_name"] = str[0]

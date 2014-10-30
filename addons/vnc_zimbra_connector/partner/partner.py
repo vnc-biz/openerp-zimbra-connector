@@ -889,8 +889,8 @@ class res_partner(osv.osv):
             if vals.get('first_name') or vals.get('middle_name') or \
                                         vals.get('last_name'):
                 vals['name'] = (vals.get('first_name') or "") + ' '+  \
-                                (vals.get('middle_name') or "") + ' '+\
-                                ( vals.get('last_name') or "")
+                                (vals.get('middle_name') and vals.get('middle_name') + ' ' or "") \
+                                (vals.get('last_name') or "")
         else:
             vals['first_name'] = vals['name']
         return super(res_partner, self).create(cr, uid, vals, context=context)
@@ -898,7 +898,8 @@ class res_partner(osv.osv):
     def onchange_fml_name(self, cr, uid, ids, fname, mname=' ', lname=' ' ):
         res={}
         if fname:
-            res['name']=fname+' '+(mname or '')+' '+(lname or '')
+            res['name']=fname + ' ' +(mname and mname + ' ' or '')+ (lname or '')
+            res['name'] = res['name'].strip() 
         return {'value':res}
 
     def write(self, cr, uid, ids, vals, context=None):
@@ -914,8 +915,9 @@ class res_partner(osv.osv):
                     f_name=vals.get('first_name') or  data['first_name'] or ''
                     m_name=vals.get('middle_name') or data['middle_name'] or ''
                     l_name=vals.get('last_name') or data['last_name'] or ''
-                    vals['name'] = (f_name or "") + ' '+  (m_name or "")+ ' '+\
+                    vals['name'] = (f_name or "") + ' '+  (m_name and m_name + ' ' or "") \
                                     (l_name or "")
+                    vals['name'] = vals['name'].strip()
             else:
                 if not vals.get('name'):
                     for data in self.browse(cr, uid, ids):

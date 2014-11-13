@@ -188,9 +188,14 @@ def make_service_call(host, port, username, pwd, dbname, option):
     def uid_generat(data):# UID generat
         sha_obj = hashlib.sha1(data)
         return sha_obj.hexdigest()
-    sock_common = xmlrpclib.ServerProxy('http://'+host+':'+port+'/xmlrpc/common')
-    uid = sock_common.login(dbname, username, pwd)
-    sock = xmlrpclib.ServerProxy('http://'+host+':'+port+'/xmlrpc/object')
+    if host == '1' and port == '1':
+        sock_common = xmlrpclib.ServerProxy('http://127.0.0.1:8069/xmlrpc/common')
+        uid = sock_common.login(dbname, username, pwd)
+        sock = xmlrpclib.ServerProxy('http://127.0.0.1:8069/xmlrpc/object')
+    else:
+        sock_common = xmlrpclib.ServerProxy('http://'+host+':'+port+'/xmlrpc/common')
+        uid = sock_common.login(dbname, username, pwd)
+        sock = xmlrpclib.ServerProxy('http://'+host+':'+port+'/xmlrpc/object')
     if option == "task":
         task_ids = sock.execute(dbname, uid, pwd, 'crm.task', 'search',\
                              [('task_type', '=', 't'), ('user_id', '=', uid)])

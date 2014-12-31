@@ -816,8 +816,8 @@ class res_partner(osv.osv):
         if zsync_ids:
             data_read = zimbra_contactsync_pool.read(cr, uid, zsync_ids[0])
             partner_ids = self.search(cr, uid, [('write_date','>',\
-                            datetime.strptime(data_read['last_sync'],\
-                            '%Y-%m-%d %H:%M:%S')),('zcontact_id','=',False)])
+                            str(datetime.strptime(data_read['last_sync'],\
+                            '%Y-%m-%d %H:%M:%S'))),('zcontact_id','=',False)])
             if data_read['delete_items']:
                 deleted_datas['deleted_datas'] = \
                                     ast.literal_eval(data_read['delete_items'])

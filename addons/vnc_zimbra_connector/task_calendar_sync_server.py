@@ -275,7 +275,7 @@ def make_service_call(host, port, username, pwd, dbname, option):
             elif data['state'] == 'cancel':
                 todo.add('status', 'Deffered')
             elif data['state'] == 'open':
-                todo.add('status', 'In Progress')
+                todo.add('status', 'IN-PROCESS')
             else:
                 todo.add('status', 'NEEDS-ACTION')
                 todo.add('PERCENT-COMPLETE', 0)

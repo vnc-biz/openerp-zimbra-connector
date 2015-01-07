@@ -37,6 +37,18 @@
                 </xpath>
             </field>
         </record>
+        
+        <record id="view_crm_phonecall_form_zimbra" model="ir.ui.view">
+            <field name="name">crm.phonecall.form.zimbra</field>
+            <field name="model">crm.phonecall</field>
+            <field name="inherit_id" ref="crm.crm_case_phone_form_view"/>
+            <field name="arch" type="xml">
+                <field name="priority" position="replace">
+                    <field  name="priority" widget="selection"/> 
+                </field>
+            </field>
+        </record>
+               
 
         <record model="ir.cron" id="vnc_res_partner_name_cron">
             <field name="name">VNC Partner Name Update Cron</field>

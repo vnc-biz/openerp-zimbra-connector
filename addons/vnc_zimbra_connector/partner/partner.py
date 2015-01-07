@@ -940,4 +940,10 @@ class zimbra_contactsync_log(osv.osv):
     _defaults = {'delete_items':'[]'}
 
 zimbra_contactsync_log()
+
+class crm_phonecall(osv.osv):
+    _inherit='crm.phonecall'
+    _columns={
+              'priority': fields.selection([('1', 'Highest'),('2', 'High'),('3', 'Normal'),('4', 'Low'),('5', 'Lowest')], 'Priority'),
+              }
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

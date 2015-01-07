@@ -830,14 +830,14 @@ class res_partner(osv.osv):
                                      ['id','first_name','middle_name',\
                                       'last_name','city','street','street2',\
                                       'zip','phone','fax','email','mobile',\
-                                      'parent_id','title','country_id'])
+                                      'parent_id','title','country_id','state_id'])
         else:
             partner_id = self.search(cr, uid, [('zcontact_id','=',False)])
             datas = self.export_data(cr,uid,partner_id,['id','first_name',\
                                             'middle_name','last_name','city',\
                                             'street','street2','zip','phone',\
                                             'fax','email','mobile','parent_id',\
-                                            'title','country_id'])
+                                            'title','country_id','state_id'])
             zimbra_contactsync_pool.create(cr, uid, {
                                 'zimbra_uid':zuid,
                                 'addbook_id':addbookid,

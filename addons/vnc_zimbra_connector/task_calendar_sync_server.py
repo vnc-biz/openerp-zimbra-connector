@@ -223,7 +223,7 @@ def make_service_call(host, port, username, pwd, dbname, option):
     sock = xmlrpclib.ServerProxy('http://'+host+':'+port+'/xmlrpc/object')
     if option == "task":
         task_ids = sock.execute(dbname, uid, pwd, 'crm.task', 'search',\
-                             [('task_type', '=', 't'), ('user_id', '=', uid)])
+                             [('task_type', '=', 't'), ('user_id', '=', uid), ('state', '!=', 'cancel')])
         task_data = sock.execute(dbname, uid, pwd, 'crm.task', 'read', task_ids,\
                     ['name','description','date','date_deadline',\
                      'priority','state','location','write_date'])

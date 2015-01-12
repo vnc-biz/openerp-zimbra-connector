@@ -946,4 +946,40 @@ class crm_phonecall(osv.osv):
     _columns={
               'priority': fields.selection([('1', 'Highest'),('2', 'High'),('3', 'Normal'),('4', 'Low'),('5', 'Lowest')], 'Priority'),
               }
+    
+class calendar_event(osv.Model):
+    _inherit='calendar.event'
+    reminder_mapping = {'1':{'duration': 1, 'interval': 'minutes', 'type':'notification'},
+                    '2': {'duration': 5, 'interval': 'minutes', 'type': 'notification'},
+                    '3': {'duration': 10, 'interval': 'minutes', 'type': 'notification'},
+                    '4': {'duration': 15, 'interval': 'minutes', 'type': 'notification'},
+                    '5': {'duration': 30, 'interval': 'minutes', 'type': 'notification'},
+                    '6': {'duration': 45, 'interval': 'minutes', 'type': 'notification'},
+                    '7': {'duration': 1, 'interval': 'hours', 'type': 'notification'},
+                    '8': {'duration': 2, 'interval': 'hours', 'type': 'notification'},
+                    '9': {'duration': 3, 'interval': 'hours', 'type': 'notification'},
+                    '10': {'duration': 4, 'interval': 'hours', 'type': 'notification'},
+                    '11': {'duration': 5, 'interval': 'hours', 'type': 'notification'},
+                    '12': {'duration': 18, 'interval': 'hours', 'type': 'notification'}
+                    }
+
+    def create(self, cr, uid, vals, context=None):
+        alarm_id = vals.get('alarm_id', '')
+        if alarm_id:
+            alarm_data = self.reminder_mapping[alarm_id]
+            alarm_pool = self.pool.get('calendar.alarm')
+            alarm_ids = alarm_pool.search(cr, uid, [('duration', '=', alarm_data['duration']),
+                                              ('interval', '=', alarm_data['interval']),
+                                              ('type', '=', alarm_data['type'])])
+            if not alarm_ids:
+                alarm_data['name'] = str(alarm_data['duration']) + ' ' + alarm_data['interval'] + ' before'
+                alarm_ids = alarm_pool.create(cr, uid, alarm_data, context=context)
+            else:
+                alarm_ids = alarm_ids[0]
+            
+            vals['alarm_ids'] = [(4, alarm_ids)]
+                
+        return super(calendar_event, self).create(cr, uid, vals, context=context)
+    
+calendar_event()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

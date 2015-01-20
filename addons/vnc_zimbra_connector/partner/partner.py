@@ -832,7 +832,7 @@ class res_partner(osv.osv):
                                       'zip','phone','fax','email','mobile',\
                                       'parent_id','title','country_id'])
         else:
-            partner_id = self.search(cr, uid, [('zcontact_id','=',False)])
+            partner_id = self.search(cr, uid, ['|', ('zcontact_id','=',''), ('zcontact_id','=',None)])
             datas = self.export_data(cr,uid,partner_id,['id','first_name',\
                                             'middle_name','last_name','city',\
                                             'street','street2','zip','phone',\

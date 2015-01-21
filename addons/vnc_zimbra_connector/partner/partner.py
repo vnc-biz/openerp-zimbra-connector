@@ -930,8 +930,9 @@ class res_partner(osv.osv):
     def res_partner_name_cron(self, cr, uid, context={}):
         ids = self.search(cr, uid, [], context=context)
         for data in self.browse(cr, uid, ids, context=context):
-            if data.name:
-                self.write(cr, uid, data['id'], {'first_name': data.name},\
+            if not data.is_company:
+                name_data = data.name.split(' ')
+                self.write(cr, uid, data['id'], {'first_name': name_data[0], 'last_name': name_data[-1]},\
                             context)
         return True
 

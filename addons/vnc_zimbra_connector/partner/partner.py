@@ -984,5 +984,21 @@ class calendar_event(osv.Model):
                 
         return super(calendar_event, self).create(cr, uid, vals, context=context)
     
+    def write(self, cr, uid, ids, vals, context=None):
+        #FIX: needed because _constraint function(_check_closing_date) uses DB values and not current values
+        stop_date = vals.get('stop_datetime', '') or vals.get('stop_date', '')
+        if stop_date:
+            start_date = vals.get('start_datetime', '')
+            if not start_date:
+                event = self.browse(cr, uid, ids[0], context=context)
+                start_date = event.start_datetime or event.start_date
+
+            if start_date:
+                if stop_date < start_date:
+                    raise osv.except_osv('Invalid Data!','Error ! End date cannot be set before start date.')
+
+        return super(calendar_event, self).write(cr, uid, ids, vals, context=context)
+
+    
 calendar_event()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

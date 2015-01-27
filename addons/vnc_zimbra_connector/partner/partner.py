@@ -936,6 +936,8 @@ class res_partner(osv.osv):
                 name_data = data.name.split(' ')
                 self.write(cr, uid, data['id'], {'first_name': name_data[0], 'last_name': name_data[-1]},\
                             context)
+            else:
+                self.write(cr, uid, data['id'], {'first_name': data.name}, context)
         return True
 
 res_partner()

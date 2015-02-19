@@ -143,17 +143,4 @@ class crm_lead(osv.osv):
 
 crm_lead()
 
-
-
-class crm_phonecall(osv.osv):
-    """ Model for CRM phonecalls """
-    _inherit = 'crm.phonecall'
-    _description = "Phonecall"
-
-    def create(self, cr, uid, values, context=None):
-        if values.has_key('priority') and values.get('priority') not in (0, 1, 2, '0', '1', '2'):
-            values['priority'] = '0'
-
-        return super(crm_phonecall, self).create(cr, uid, values, context=context)
-crm_phonecall()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

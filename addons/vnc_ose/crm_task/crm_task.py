@@ -175,7 +175,9 @@ class crm_task(osv.osv):
         user = self.pool.get('res.users').browse(cr, uid, user_id, context)
         user_section = user.section_id and user.section_id.id or False
         res['section_id'] = user_section
-
+        
+        default_partner_address_id = False
+        default_partner_id =  False
         if context and 'default_opportunity_id' in context and \
                                             context['default_opportunity_id']:
             crm_pool = self.pool.get('crm.lead')
@@ -185,25 +187,25 @@ class crm_task(osv.osv):
             res['partner_id'] = crm_Data['partner_id'] and \
                                 crm_Data['partner_id'][0] or False
             if 'partner_id' in crm_Data and crm_Data.get('partner_id'):
-                context.update({'default_partner_address_id': False})
-                context.update({'default_partner_id': res['partner_id']})
+                default_partner_address_id = False
+                default_partner_id =  res['partner_id']
 
-        if context and context.get('default_partner_address_id'):
+        if default_partner_address_id:
             read_data = self.pool.get('res.partner').read(cr, uid,\
-                        context.get('default_partner_address_id'))
+                        default_partner_address_id)
             f_name = self.pool.get('res.partner').read(cr, uid,\
-                        context.get('default_partner_address_id'), ['name'])
+                        default_partner_address_id, ['name'])
             res['first_name'] = f_name['name']
             res['partner_id'] = read_data['partner_id'] and \
                                 read_data['partner_id'][0] or False
-            context['default_partner_id'] = res['partner_id']
+            default_partner_id = res['partner_id']
 
-        if context and context.get("default_partner_id"):
+        if default_partner_id:
             onchange_val = self.onchange_partner_id(cr, uid, [],\
-                                            context.get("default_partner_id"))
+                                            default_partner_id)
             res.update(onchange_val['value'])
             addr = self.pool.get('res.partner').address_get(cr, uid,\
-                [int(context.get("default_partner_id"))], ['contact','default'])
+                [int(default_partner_id)], ['contact','default'])
             res['partner_address_id'] = addr['contact']
             if res.get('partner_address_id',False) and 'first_name' not in res:
                 f_name = self.pool.get('res.partner').read(cr, uid, \

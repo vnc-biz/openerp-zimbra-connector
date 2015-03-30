@@ -5,7 +5,7 @@
     "author": "VNC",
     "website": "http://www.vnc.biz",
     "category": "Generic Modules/",
-    "depends": ['event'],
+    "depends": ['event','crm'],
     "description": """Customized module for CRM AND Zimbra Connector
     Openerp Version 7
     """,

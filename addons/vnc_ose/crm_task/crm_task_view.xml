@@ -41,7 +41,7 @@
             <field name="view_type">form</field>
             <field name="view_id" ref="crm.crm_case_categ_tree-view" />
             <field name="domain">[('object_id.model', '=', 'crm.task')]</field>
-            <field name="context">{'object_id':'crm.task'}</field>
+            <field name="context" eval="{'object_id': ref('model_crm_task')}" />
             <field name="help">Create different task categories to better organize and classify your tasks.</field>
         </record>
         <menuitem action="crm_task_categ_action" id="menu_crm_case_task-act"

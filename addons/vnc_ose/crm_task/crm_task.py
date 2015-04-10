@@ -139,9 +139,8 @@ class crm_task(osv.osv):
                 self.check_fields(cr, uid, old_data['id'], vals, context)
             # Copying date to stop_datetime if it is False, calling onchage will return the stop_datetime
             if not old_data['stop_datetime'] and old_data['start_datetime']:
-                date = self.browse(cr, uid, ids[0]).date
-                data = self.onchange_dates(cr, uid, ids[0], date, duration=2,\
-                                            context=context)
+                date = self.browse(cr, uid, ids[0]).start
+                data = self.onchange_dates(cr, uid, ids[0], 'start', date, context=context)
                 vals.update(data['value'])
         return super(crm_task, self).write(cr, uid, ids, vals, context=context)
 
@@ -320,51 +319,51 @@ class crm_task(osv.osv):
                          ['stop_datetime']),
     ]
 
-    def onchange_dates(self, cr, uid, ids, start_date, duration=False, \
-                       end_date=False, allday=False, context=None):
-        """Returns duration and/or end date based on values passed
-        @param self: The object pointer
-        @param cr: the current row, from the database cursor,
-        @param uid: the current user’s ID for security checks,
-        @param ids: List of calendar event’s IDs.
-        @param start_date: Starting date
-        @param duration: Duration between start date and end date
-        @param end_date: Ending Datee
-        @param context: A standard dictionary for contextual values
-        """
-        if context is None:
-            context = {}
-
-        value = {}
-        if not start_date:
-            return value
-        if not end_date and not duration:
-            duration = 1.00
-            value['duration'] = duration
-        if allday:# For all day event
-            value = {'duration': 24}
-            duration = 24.0
-
-        start_date = start_date and start_date.split('.')[0]
-        end_date = end_date and end_date.split('.')[0]
-        start = datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S')
-        if end_date and not duration:
-            end = datetime.strptime(end_date, "%Y-%m-%d %H:%M:%S")
-            diff = end - start
-            duration = float(diff.days)* 24 + (float(diff.seconds) / 3600)
-            value['duration'] = round(duration, 2)
-        elif not end_date:
-            end = start + timedelta(hours=duration)
-            value['stop_datetime'] = end.strftime("%Y-%m-%d %H:%M:%S")
-        elif end_date and duration and not allday:
-            # we have both, keep them synchronized:
-            #test_theraline set duration based on end_date (arbitrary decision: this avoid
-            # getting dates like 06:31:48 instead of 06:32:00)
-            end = datetime.strptime(end_date, "%Y-%m-%d %H:%M:%S")
-            diff = end - start
-            duration = float(diff.days)* 24 + (float(diff.seconds) / 3600)
-            value['duration'] = round(duration, 2)
-        return {'value': value}
+#     def onchange_dates(self, cr, uid, ids, start_date, duration=False, \
+#                        end_date=False, allday=False, context=None):
+#         """Returns duration and/or end date based on values passed
+#         @param self: The object pointer
+#         @param cr: the current row, from the database cursor,
+#         @param uid: the current user’s ID for security checks,
+#         @param ids: List of calendar event’s IDs.
+#         @param start_date: Starting date
+#         @param duration: Duration between start date and end date
+#         @param end_date: Ending Datee
+#         @param context: A standard dictionary for contextual values
+#         """
+#         if context is None:
+#             context = {}
+# 
+#         value = {}
+#         if not start_date:
+#             return value
+#         if not end_date and not duration:
+#             duration = 1.00
+#             value['duration'] = duration
+#         if allday:# For all day event
+#             value = {'duration': 24}
+#             duration = 24.0
+# 
+#         start_date = start_date and start_date.split('.')[0]
+#         end_date = end_date and end_date.split('.')[0]
+#         start = datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S')
+#         if end_date and not duration:
+#             end = datetime.strptime(end_date, "%Y-%m-%d %H:%M:%S")
+#             diff = end - start
+#             duration = float(diff.days)* 24 + (float(diff.seconds) / 3600)
+#             value['duration'] = round(duration, 2)
+#         elif not end_date:
+#             end = start + timedelta(hours=duration)
+#             value['stop_datetime'] = end.strftime("%Y-%m-%d %H:%M:%S")
+#         elif end_date and duration and not allday:
+#             # we have both, keep them synchronized:
+#             #test_theraline set duration based on end_date (arbitrary decision: this avoid
+#             # getting dates like 06:31:48 instead of 06:32:00)
+#             end = datetime.strptime(end_date, "%Y-%m-%d %H:%M:%S")
+#             diff = end - start
+#             duration = float(diff.days)* 24 + (float(diff.seconds) / 3600)
+#             value['duration'] = round(duration, 2)
+#         return {'value': value}
 
     def _get_stage(self, cr, uid, context={}):
         ids = self.pool.get('crm.case.stage').search(cr, uid, 

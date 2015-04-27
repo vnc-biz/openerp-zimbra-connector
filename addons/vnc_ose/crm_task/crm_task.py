@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import openerp
 from openerp.addons.calendar import calendar
 # from openerp.addons.base_status.base_state import base_state
 from openerp.osv import fields, osv
@@ -33,6 +34,24 @@ crm_field_history()
 class calendar_event(osv.Model):
     """ Model for Calendar Event """
     _inherit = 'calendar.event'
+    
+    def get_search_fields(self, browse_event, order_fields, r_date=None):
+        sort_fields = {}
+        for ord in order_fields:
+            if ord == 'id' and r_date:
+                sort_fields[ord] = '%s-%s' % (browse_event[ord], r_date.strftime("%Y%m%d%H%M%S"))
+            else:
+                sort_fields[ord] = browse_event[ord]
+                if type(browse_event[ord]) is openerp.osv.orm.browse_record:
+                    name_get = browse_event[ord].name_get()
+                    if len(name_get) and len(name_get[0]) >= 2:
+                        sort_fields[ord] = name_get[0][1]
+        if r_date:
+            sort_fields['sort_start'] = r_date.strftime("%Y%m%d%H%M%S")
+        else:
+            if 'display_start' in browse_event and browse_event['display_start']:
+                sort_fields['sort_start'] = browse_event['display_start'].replace(' ', '').replace('-', '')
+        return sort_fields
     
     def create_attendees(self, cr, uid, ids, context):
         user_obj = self.pool['res.users']
@@ -99,7 +118,7 @@ class crm_task(osv.osv):
     """ CRM task Cases """
     _name = 'crm.task'
     _description = "Task"
-    _order = "start_datetime asc"
+    _order = "display_start asc"
     _inherit = "calendar.event"
     _check_fields = ['user_id']
 

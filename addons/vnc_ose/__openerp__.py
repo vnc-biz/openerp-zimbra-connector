@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Project VNC OSE",
-    "version": "7.0",
+    "version": "8.0",
     "author": "VNC",
     "website": "http://www.vnc.biz",
     "category": "Generic Modules/",
     "depends": ['event','crm'],
     "description": """Customized module for CRM AND Zimbra Connector
-    Openerp Version 7
+    Odoo Version 8.0
     """,
     "data": [
            'security/ir.model.access.csv',

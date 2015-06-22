@@ -440,6 +440,7 @@ class crm_task(osv.osv):
             if not case.user_id:
                 data['user_id'] = uid
             self.write(cr, uid, case.id, data)
+            self.task_done_mail_notification(cr, uid, [case.id])
         return True
 
     def case_reset(self, cr, uid, ids, *args):
@@ -463,6 +464,29 @@ class crm_task(osv.osv):
                 return {'value':{'owner_changed':0}}
         return
 
+    
+    def task_done_mail_notification(self, cr, uid, ids, context=None):
+        if not ids:
+            return True
+        if context is None:
+            context={}
+        
+        template_obj=self.pool.get('email.template')
+        task = self.browse(cr, uid, ids[0])
+        template_id = self.pool.get('ir.model.data').get_object_reference(cr, \
+                                      uid, 'vnc_ose', 'email_template_task_done')
+        if not template_id:
+            raise osv.except_osv(_('Invalid Template !'),
+                        _('No Template Found for the name email_template_task_done !'))
+        template = template_obj.browse(cr, uid, template_id[1])
+        if task.user_delegated_id and task.user_delegated_id.id!= task.user_id.id:
+            context.update({'user_email': task.user_delegated_id.email, 'user_name': task.user_delegated_id.name})
+            
+        action = self.pool.get('email.template').send_mail(cr, uid, \
+                                   template_id[1], ids[0], context=context)
+        
+        return True
+    
     def salesman_change_mail_notification_task(self, cr, uid, automatic=False, \
                                         template=False,type='t', context=None,):
         task_ids = self.search(cr, uid, \

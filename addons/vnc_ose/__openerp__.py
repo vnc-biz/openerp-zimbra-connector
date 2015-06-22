@@ -16,6 +16,7 @@
            "crm_task/crm_task_menu.xml",
            "crm_view.xml",
            "common_view.xml",
+           "crm_task/email_data.xml"
     ],
     'installable': True,
     'active': False,

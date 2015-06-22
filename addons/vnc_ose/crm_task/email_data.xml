@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+	<data noupdate="1">
+	
+		<!-- 		************ Task Done notification ******* -->
+		<record id="email_template_task_done" model="email.template">
+			<field name="name">Task Done Notification</field>
+			<field model="ir.model" search="[('model','=','crm.task')]"
+				name="model_id" />
+			<field name="email_from">VNC ERP &lt; notifications@vnc.biz &gt;</field>
+			<field name="email_to">${object.user_id.email}, ${ctx.get('user_email')}</field>
+			<field name="subject">Task Done : ${object.name}</field>
+			<field name="auto_delete" eval="False"/>
+			<field name="body_html">OpenERP Notification:
+
+				Crm Task:
+				Hello ! ${object.user_id.name} , ${ctx.get('user_name') or ''}
+				Task ${object.name} has been closed.
+
+				You have received this notification because you
+				have either subscribed
+				to it, or are involved in it.
+
+				In case of
+				questions please contact our support team.
+
+				---
+				Sender: VNC OpenERP
+				Email: vnc-openerp@vnc.biz
+			</field>
+		</record>
+		
+		
+	</data>
+</openerp>

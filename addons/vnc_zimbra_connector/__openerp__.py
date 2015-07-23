@@ -17,7 +17,8 @@
     "data" : [
         'security/ir.model.access.csv',
         'crm_view.xml',
-        'partner/partner_view.xml'
+        'partner/partner_view.xml',
+        'views/vnc_zimbra_connector.xml'
     ],
     'js':[
         'static/src/js/vnc_zimbra_connector.js',

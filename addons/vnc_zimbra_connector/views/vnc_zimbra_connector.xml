@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- vim:fdn=3:
+-->
+<openerp>
+    <data>
+        <template id="assets_backend" name="res_company assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/vnc_zimbra_connector/static/src/js/vnc_zimbra_connector.js"></script>
+            </xpath>
+        </template>
+    </data>
+</openerp>

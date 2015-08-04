@@ -191,8 +191,12 @@
                             <filter icon="terp-personal+" help="My Sales Team(s)"
                                 domain="['|', ('section_id.user_id','=',uid), ('section_id.member_ids', 'in', [uid])]" />
                         </field>
+                        <filter icon="terp-go-today" string="Start Today" domain="[('start_datetime','&lt;=', datetime.datetime.combine(context_today(), datetime.time(23,59,59))), ('start_datetime','&gt;=', datetime.datetime.combine(context_today(), datetime.time(0,0,0)))]" />
+						<filter icon="terp-go-today" string="End Today" domain="[('stop_datetime','&lt;=', datetime.datetime.combine(context_today(), datetime.time(23,59,59))), ('stop_datetime','&gt;=', datetime.datetime.combine(context_today(), datetime.time(0,0,0)))]" />
                         <field name="user_id" select="1" />
                         <field name="user_delegated_id" />
+                        <field name="start_datetime" />
+						<field name="stop_datetime" />
                     </group>
                     <newline />
                     <group expand="0" string="Group By...">

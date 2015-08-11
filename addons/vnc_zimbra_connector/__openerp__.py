@@ -3,7 +3,7 @@
     "version" : "1.1.0",
     "author" : "VNC",
     "website" : "http://www.vnc.biz/",
-    "depends" : ["base", "crm", "vnc_ose", "project"],
+    "depends" : ["base", "crm", "vnc_ose", "project", 'hr'],
     "category" : "Generic Modules/Zimbra interface",
     "description": """
       This module is required for the zimbra openerp plug-in to work
@@ -18,6 +18,7 @@
         'security/ir.model.access.csv',
         'crm_view.xml',
         'partner/partner_view.xml',
+        'hr/hr_view.xml',
         'views/vnc_zimbra_connector.xml'
     ],
     'js':[

@@ -763,6 +763,7 @@ class res_partner(osv.osv):
               }
 
     def partner_sync_multi(self, cr, uid, zlistofdict=[], context={}):
+        # for update/create zimbra contact in odoo
         created = updated = 0
         if zlistofdict:
             for element in zlistofdict:
@@ -804,20 +805,32 @@ class res_partner(osv.osv):
                     updated += 1
         return {'created': created,'updated': updated}
 
-    def partner_sync_openerp(self,cr, uid, zuid=False, addbookid=False, \
-                             context=None):
+    def partner_sync_openerp(self,cr, uid, zuid=False, addbookid=False, zim_domain=[], context=None):
+        # synchronize contact to zimbra
         datas = False
         deleted_datas = {'deleted_datas':[]}
+        zdomain = []
+        if zim_domain:
+            if len(zim_domain)>1:
+                zdomain.append('|')
+            for d in zim_domain:
+                zdomain.append((d['field'], d['operator'], d['value']))
+        
         zimbra_contactsync_pool = self.pool.get('zimbra.contactsync.log')
         if not zuid and not addbookid:
             return {'error':'UserID/AddressBook ID missing !'}
+
         zsync_ids = zimbra_contactsync_pool.search(cr, uid, \
-                        [('zimbra_uid','=',zuid),('addbook_id','=',addbookid)])
+                        [('zimbra_uid','=',zuid),('addbook_id','=',addbookid), ('resource', '=', False)])
+
         if zsync_ids:
             data_read = zimbra_contactsync_pool.read(cr, uid, zsync_ids[0])
-            partner_ids = self.search(cr, uid, [('write_date','>',\
+            domain = [('write_date','>',\
                             str(datetime.strptime(data_read['last_sync'],\
-                            '%Y-%m-%d %H:%M:%S'))),('zcontact_id','=',False)])
+                            '%Y-%m-%d %H:%M:%S'))),('zcontact_id','=',False)] + zdomain
+            
+            partner_ids = self.search(cr, uid, domain)
+            
             if data_read['delete_items']:
                 deleted_datas['deleted_datas'] = \
                                     ast.literal_eval(data_read['delete_items'])
@@ -832,7 +845,8 @@ class res_partner(osv.osv):
                                       'zip','phone','fax','email','mobile',\
                                       'parent_id','title','country_id','state_id'])
         else:
-            partner_id = self.search(cr, uid, [('zcontact_id','=',False)])
+            domain = [('zcontact_id','=',False)] + zdomain
+            partner_id = self.search(cr, uid, domain)
             datas = self.export_data(cr,uid,partner_id,['id','first_name',\
                                             'middle_name','last_name','city',\
                                             'street','street2','zip','phone',\
@@ -853,9 +867,8 @@ class res_partner(osv.osv):
         if not read_data:
             return super(res_partner, self).unlink(cr, uid, ids, \
                                                    context=context)
-        all_ids = self.pool.get('zimbra.contactsync.log').search(cr, uid, [])
-        for zcs in self.pool.get('zimbra.contactsync.log').browse(cr, uid,\
-                                                                   all_ids):
+        all_ids = self.pool.get('zimbra.contactsync.log').search(cr, uid, [('resource', '=', False)])
+        for zcs in self.pool.get('zimbra.contactsync.log').browse(cr, uid, all_ids):
             if zcs.delete_items:
                 data_write = ast.literal_eval(zcs.delete_items)
                 datas = self.export_data(cr,uid,read_data,['id'])
@@ -922,7 +935,8 @@ class res_partner(osv.osv):
         ids = self.search(cr, uid, [], context=context)
         for data in self.browse(cr, uid, ids, context=context):
             if not data.is_company:
-                name_data = data.name.split(' ')
+                name = data.name.strip()
+                name_data = name.split(' ')
                 self.write(cr, uid, data['id'], {'first_name': name_data[0], 'last_name': name_data[-1]},\
                             context)
             else:
@@ -938,7 +952,8 @@ class zimbra_contactsync_log(osv.osv):
                 'zimbra_uid':fields.char('Zimbra UserID',size=256),
                 'addbook_id':fields.char('AddresBook ID',size=256),
                 'last_sync':fields.datetime('Last Sync Time'),
-                'delete_items':fields.text('Delete Sync Pending Partners')
+                'delete_items':fields.text('Delete Sync Pending Partners'),
+                'resource': fields.char('Source object')
                 }
     _defaults = {'delete_items':'[]'}
 

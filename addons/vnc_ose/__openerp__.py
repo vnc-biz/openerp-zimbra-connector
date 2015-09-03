@@ -5,7 +5,7 @@
     "author": "VNC",
     "website": "http://www.vnc.biz",
     "category": "Generic Modules/",
-    "depends": ['event','crm'],
+    "depends": ['event','crm', 'auth_signup'],
     "description": """Customized module for CRM AND Zimbra Connector
     Odoo Version 8.0
     """,

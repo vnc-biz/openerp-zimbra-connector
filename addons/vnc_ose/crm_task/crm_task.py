@@ -470,7 +470,7 @@ class crm_task(osv.osv):
             return True
         if context is None:
             context={}
-        
+
         template_obj=self.pool.get('email.template')
         task = self.browse(cr, uid, ids[0])
         template_id = self.pool.get('ir.model.data').get_object_reference(cr, \
@@ -481,7 +481,7 @@ class crm_task(osv.osv):
         template = template_obj.browse(cr, uid, template_id[1])
         if task.user_delegated_id and task.user_delegated_id.id!= task.user_id.id:
             context.update({'user_email': task.user_delegated_id.email, 'user_name': task.user_delegated_id.name})
-            
+
         action = self.pool.get('email.template').send_mail(cr, uid, \
                                    template_id[1], ids[0], context=context)
         
@@ -539,6 +539,17 @@ class crm_task(osv.osv):
                     'cron_name':'task_idel_reminder',
                     })
         return True
+    
+    def get_signup_url(self, cr, uid, ids, context=None):
+        assert len(ids) == 1
+        task = self.browse(cr, uid, ids[0], context=context)
+        partner_id = task.user_id.partner_id.id
+        contex_signup = dict(context, signup_valid=True)
+        partner_obj = self.pool.get('res.partner')
+        return partner_obj._get_signup_url_for_action(cr, uid, [partner_id],
+                                                                action='mail.action_mail_redirect',
+                                                                model=self._name, res_id=task.id,
+                                                                context=contex_signup)[partner_id]
 
 crm_task()
 

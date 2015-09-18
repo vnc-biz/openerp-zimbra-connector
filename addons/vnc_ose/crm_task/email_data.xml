@@ -12,36 +12,30 @@
 			<field name="subject">Task Done : ${object.name}</field>
 			<field name="auto_delete" eval="False"/>
 			<field name="body_html"><![CDATA[
-				
 				OpenERP Notification:
-
-				Crm Task:
-				Hello ! ${object.user_id.name} , ${ctx.get('user_name') or ''}
-				Task ${object.name} has been closed.
-				
+				<br/>
+				Crm Task:<br/>
+				Hello ! ${object.user_id.name} , ${ctx.get('user_name') or ''}<br/>
+				Task ${object.name} has been closed.<br/>
+				<br/>
 				<% set signup_url = object.get_signup_url() %>
 			    % if signup_url:
-				    <p>
-				    	You can access the Task:
-				    </p>
-			        <a style="display:block; width: 150px; height:20px; margin-left: 120px; color: #DDD; font-family: 'Lucida Grande',
+			        You can access the Task:<a style="display:block; width: 150px; height:20px; margin-left: 5px; color: #DDD; font-family: 'Lucida Grande',
 			        	Helvetica, Arial, sans-serif; font-size: 13px; font-weight: bold; text-align: center; text-decoration: none !important; line-height: 1; 
 			        	padding: 5px 0px 0px 0px; background-color: #8E0000; border-radius: 5px 5px; background-repeat: repeat no-repeat;"
 			           href="${signup_url}">View Task</a>
 			    % endif
-			    
-
-				You have received this notification because you
-				have either subscribed
-				to it, or are involved in it.
-
-				In case of
-				questions please contact our support team.
-				
-				---
-				Sender: VNC OpenERP
-				Email: vnc-openerp@vnc.biz
-				
+			    <br/>
+				<br/>
+				You have received this notification because you<br/>
+				have either subscribed<br/>
+				to it, or are involved in it.<br/>
+				<br/>
+				In case of questions please contact our support team.<br/>
+				<br/>
+				---<br/>
+				Sender: VNC OpenERP<br/>
+				Email: vnc-openerp@vnc.biz<br/>
 				]]>
 			</field>
 		</record>

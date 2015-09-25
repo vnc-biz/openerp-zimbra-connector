@@ -503,7 +503,7 @@ class crm_task(osv.osv):
                         _('No Template Found for the given name %s!')%template)
         for task_id in task_ids:
             action=template_obj.send_mail(cr,uid,so_template[0],task_id,context)
-        self.write(cr, uid, task_ids, {'owner_changed':False})
+            self.write(cr, uid, [task_id], {'owner_changed':False})
         return True
 
     def task_idel_reminder(self, cr, uid, automatic=False, template=False, \

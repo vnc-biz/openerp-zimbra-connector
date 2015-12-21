@@ -42,7 +42,7 @@ class ZimbraVNCController(http.Controller):
             return redirect  
         cal_data = self.make_service_call('calendar')
         headers = [('cache-control', 'no-cache'), \
-                        ('Pragma', 'no-cache'), ('Expires', 0), \
+                        ('Pragma', 'no-cache'), \
                         ('Content-Type', 'text/calendar'), \
                         ('Content-length', len(cal_data)), \
                         ('Content-Disposition', 'attachment; filename='+\
@@ -71,7 +71,7 @@ class ZimbraVNCController(http.Controller):
             return redirect
         cal_data = self.make_service_call('task')
         headers = [('cache-control', 'no-cache'), \
-                        ('Pragma', 'no-cache'), ('Expires', 0), \
+                        ('Pragma', 'no-cache'), \
                         ('Content-Type', 'text/calendar'), \
                         ('Content-length', len(cal_data)), \
                         ('Content-Disposition', 'attachment; filename='+\

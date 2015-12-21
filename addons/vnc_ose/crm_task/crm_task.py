@@ -163,6 +163,10 @@ class crm_task(osv.osv):
                 vals.update(data['value'])
         return super(crm_task, self).write(cr, uid, ids, vals, context=context)
 
+    def read_group(self,cr, uid, domain, fields, groupby, offset=0, limit=None, context=None, orderby=False, lazy=True):
+        res = super(osv.osv, self).read_group(cr, uid, domain, fields, groupby, offset=offset, limit=limit, context=context, orderby=orderby, lazy=lazy)
+        return res
+
     def create(self, cr, uid, vals, context={}):
         context.update({'crm_task':True})
         if vals and 'user_id' in vals and vals['user_id'] != uid:

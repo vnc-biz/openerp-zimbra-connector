@@ -10,7 +10,24 @@
             <field name="arch" type="xml">
                 <notebook colspan="4" position="before">
                     <separator string="Partner All Contacts" />
-                    <field name="lead_add_line" nolabel="1" context="{'default_partner_address_id': partner_id or False}">
+                    <field name="lead_add_line" nolabel="1" widget="many2many_kanban" context="{'default_partner_address_id': partner_id or False}">
+                    	<kanban quick_create="false" create="true">
+                        	<field name="email"/>
+                        	<field name="partner_address_id"/>
+	                        <templates>
+	                            <t t-name="kanban-box">
+	                                <div style="position: relative">
+	                                    <a t-if="! read_only_mode" type="delete" style="position: absolute; right: 0; padding: 4px; diplay: inline-block">X</a>
+	                                    <div class="oe_module_vignette">
+	                                        <div class="oe_module_desc">
+	                                        	<field name="partner_address_id"/>
+	                                            <field name="email"/>
+	                                        </div>
+	                                    </div>
+	                                </div>
+	                            </t>
+	                        </templates>
+                    	</kanban>
                         <tree string="Address" editable="top">
                             <field name="partner_address_id" />
                             <field name="phone" />

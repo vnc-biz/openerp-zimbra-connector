@@ -16,15 +16,21 @@
                         	<field name="partner_address_id"/>
 	                        <templates>
 	                            <t t-name="kanban-box">
-	                                <div style="position: relative">
-	                                    <a t-if="! read_only_mode" type="delete" style="position: absolute; right: 0; padding: 4px; diplay: inline-block">X</a>
-	                                    <div class="oe_module_vignette">
-	                                        <div class="oe_module_desc">
-	                                        	<field name="partner_address_id"/>
-	                                            <field name="email"/>
-	                                        </div>
-	                                    </div>
-	                                </div>
+	                                <a t-if="! read_only_mode" type="delete" style="position: absolute; right: 0; padding: 4px; diplay: inline-block">X</a>
+	                            	<div class="oe_module_desc">
+                                        <div class="oe_kanban_box_content oe_kanban_color_bglight oe_kanban_color_border">
+                                            <table class="oe_kanban_table">
+                                                <tr>
+                                                    <td class="oe_kanban_title1" align="left" valign="middle">
+                                                        <h4><a type="open"><field name="partner_address_id"/></a></h4>
+                                                        <div><a t-if="record.email.raw_value" title="Mail" t-att-href="'mailto:'+record.email.value">
+                                                            <field name="email"/>
+                                                        </a></div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
 	                            </t>
 	                        </templates>
                     	</kanban>

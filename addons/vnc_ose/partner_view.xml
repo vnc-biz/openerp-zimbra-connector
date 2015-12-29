@@ -61,12 +61,14 @@
             <field name="priority" eval="8" />
             <field name="arch" type="xml">
                 <form string="Address">
-                    <field name="partner_address_id" on_change="onchange_partner_address_id(partner_address_id)" />
-                    <field name="phone" />
-                    <field name="fax" />
-                    <field name="email" />
-                    <field name="mobile" />
-                    <field name="responsibility" />
+                	<group name="main_gp">
+	                    <field name="partner_address_id" on_change="onchange_partner_address_id(partner_address_id)" />
+	                    <field name="phone" />
+	                    <field name="fax" />
+	                    <field name="email" />
+	                    <field name="mobile" />
+	                    <field name="responsibility" />
+                    </group>
                 </form>
             </field>
         </record>

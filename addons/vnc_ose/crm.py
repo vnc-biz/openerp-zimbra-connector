@@ -9,7 +9,20 @@ import pytz
 
 class crm_lead(osv.osv):
     _inherit="crm.lead"
-
+    
+    def _check_activity(self, cr, uid, ids, name, args, context=None):
+        res = {}
+        for self_obj in self.browse(cr, uid, ids, context=context):
+            if self_obj.next_activity_id and self_obj.date_action:
+                transition_id = self.pool.get('crm.activity.transition').search(cr, uid, [('activity_id', '=', self_obj.next_activity_id.id), ('start', '=', self_obj.date_action), ('lead_id', '=', self_obj.id)])
+                if transition_id:
+                    res[self_obj.id] = False
+                else:           
+                    res[self_obj.id] = True
+            else:
+                res[self_obj.id] = False
+        return res
+    
     _columns = {
         'contact_last_name':fields.char('Last Name',size=128),
                 
@@ -21,9 +34,14 @@ class crm_lead(osv.osv):
         'next_activity_3': fields.related("last_activity_id", "activity_3_id", "name", type="char", string="Next Activity 3"),
         'date_action': fields.date('Next Activity Date', select=True),
         'title_action': fields.char('Next Activity Summary'),
+        'show_action': fields.function(_check_activity, string="Show Action", type="boolean", method=True)
     }
 
-    
+    def log_activity_transitions(self, cr, uid, ids, vals, context=None):
+        transition_obj = self.pool.get('crm.activity.transition')
+        transition_id = transition_obj.create(cr, uid, vals)
+        return transition_id
+        
     def log_next_activity_1(self, cr, uid, ids, context=None):
         return self.set_next_activity(cr, uid, ids, next_activity_name='activity_1_id', context=context)
 
@@ -42,10 +60,18 @@ class crm_lead(osv.osv):
                 date_action = False
                 if next_activity.days:
                     date_action = (datetime.now() + timedelta(days=next_activity.days)).strftime(tools.DEFAULT_SERVER_DATETIME_FORMAT),
+                    
+                transition_id = self.pool.get('crm.activity.transition').search(cr, uid, [('activity_id', '=', next_activity.id), ('start', '=', date_action), ('lead_id', '=', ids[0])])
+                
+                if transition_id:
+                    show_action = False
+                else:           
+                    show_action = True
                 lead.write({
                     'next_activity_id': next_activity.id,
                     'date_action': date_action,
                     'title_action': next_activity.description,
+                    'show_action': show_action
                 })
         return True
 
@@ -59,14 +85,16 @@ class crm_lead(osv.osv):
 <div>${object.title_action}</div>
 %endif"""
             body_html = self.pool['email.template'].render_template(cr, uid, body_html, 'crm.lead', lead.id, context=context)
+            
             msg_id = lead.message_post(body_html, subtype_id=lead.next_activity_id.subtype_id.id)
             to_clear_ids.append(lead.id)
             self.write(cr, uid, [lead.id], {'last_activity_id': lead.next_activity_id.id}, context=context)
+            #self.log_activity_transitions(cr, uid, ids, {'attendee_ids': [], 'activity_id': lead.next_activity_id.id, 'lead_id': lead.id, 'start': lead.date_action, 'stop': lead.date_action, 'start_date': lead.date_action, 'name': lead.title_action})
 
         if to_clear_ids:
             self.cancel_next_activity(cr, uid, to_clear_ids, context=context)
         return True
-
+    
     def cancel_next_activity(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,  {
             'next_activity_id': False,
@@ -74,6 +102,13 @@ class crm_lead(osv.osv):
             'title_action': False,
         }, context=context)
 
+    def add_to_activity_calendar(self, cr, uid, ids, context=None):
+        for lead in self.browse(cr, uid, ids, context=context):            
+            transition_id = self.log_activity_transitions(cr, uid, ids, {'attendee_ids': [], 'activity_id': lead.next_activity_id.id, 'lead_id': lead.id, 'start': lead.date_action, 'stop': lead.date_action, 'start_date': lead.date_action, 'name': lead.title_action, 'description': lead.description})
+            if transition_id:
+                self.write(cr, uid, lead.id, {'show_action': False})
+        return True
+        
     def onchange_next_activity_id(self, cr, uid, ids, next_activity_id, context=None):
         if not next_activity_id:
             return {'value': {
@@ -87,6 +122,13 @@ class crm_lead(osv.osv):
         date_action = False
         if activity.days:
             date_action = (datetime.now() + timedelta(days=activity.days)).strftime(tools.DEFAULT_SERVER_DATETIME_FORMAT)
+            
+        transition_id = self.pool.get('crm.activity.transition').search(cr, uid, [('activity_id', '=', next_activity_id), ('start', '=', date_action), ('lead_id', '=', ids[0])])
+        
+        if transition_id:
+            show_action = False
+        else:           
+            show_action = True
         return {'value': {
             'next_activity_1': activity.activity_1_id and activity.activity_1_id.name or False,
             'next_activity_2': activity.activity_2_id and activity.activity_2_id.name or False,
@@ -94,6 +136,7 @@ class crm_lead(osv.osv):
             'title_action': activity.description,
             'date_action': date_action,
             'last_activity_id': False,
+            'show_action': show_action
         }}
         
     
@@ -225,5 +268,24 @@ class crm_lead(osv.osv):
         return partner_id
 
 crm_lead()
+
+class crm_activity_transition(osv.osv):
+    _name = 'crm.activity.transition'
+    _inherit = "calendar.event"
+    
+    _columns = {
+        'activity_id': fields.many2one('crm.activity', 'Activity'),
+        'lead_id': fields.many2one('crm.lead', 'Lead'),
+        'activity_date': fields.date('Activity Date'),
+        'title_action': fields.char('Activity Title'),
+        'partner_ids': fields.many2many('res.partner', 'calendar_event_res_partner_rel2', string='Attendees'),
+        'state': fields.selection([('open', 'Confirmed'),
+                                     ('draft', 'Unconfirmed'),
+                                     ('cancel', 'Cancelled'),
+                                     ('done', 'Done')], 'State', \
+                                     size=16, readonly=True),
+    }
+    
+crm_activity_transition()    
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

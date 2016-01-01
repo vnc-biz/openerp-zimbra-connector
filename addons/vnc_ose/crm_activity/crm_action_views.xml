@@ -62,5 +62,52 @@
 	
 	    <menuitem id="crm_activity_menu" action="crm_activity_action"
 	        name="Activities" parent="base.menu_crm_config_lead"/>
+	        
+	    <record id="crm_activity_transition_view_form" model="ir.ui.view">
+	        <field name="name">crm.activity.transition.view.form</field>
+	        <field name="model">crm.activity.transition</field>
+	        <field name="arch" type="xml">
+	            <form string="Activity Transition">
+	                <div class="oe_title">
+	                    <label for="name" class="oe_edit_only"/>
+	                    <h1><field name="name"/></h1>
+	                </div>
+	                <group>
+	                    <group>
+	                        <field name="activity_id"/>
+	                        <field name="lead_id"/>
+	                        <field name="start"/>
+	                        <field name="state" invisible="1"/>
+	                    </group>
+	                </group>
+	            </form>
+	        </field>
+	    </record>
+	
+	    <record id="crm_activity_transition_view_tree" model="ir.ui.view">
+	        <field name="name">crm.activity.transition.view.tree</field>
+	        <field name="model">crm.activity.transition</field>
+	        <field name="arch" type="xml">
+	            <tree string="Activity Transition">
+	                <field name="name"/>
+	                <field name="activity_id"/>
+	                <field name="lead_id"/>
+	                <field name="start"/>
+	                <field name="state" invisible="1"/>
+	            </tree>
+	        </field>
+	    </record>
+	
+	    <record id="crm_activity_transition_action" model="ir.actions.act_window">
+	        <field name="name">Activity Transitions</field>
+	        <field name="res_model">crm.activity.transition</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">tree,form</field>
+	    </record>
+	
+	    <menuitem id="crm_activity_transition_menu" action="crm_activity_transition_action"
+	        name="Activity Transition" parent="base.menu_crm_config_lead"/>
+	        
+	    
 	</data>
 </openerp>

@@ -156,6 +156,18 @@ class ZimbraVNCController(http.Controller):
             
             event_data = calendar_osv.read(request.cr, SUPERUSER_ID, event_ids, ['show_as','allday','name','description',\
                                     'start_datetime','stop_datetime','location','write_date','start_date','stop_date'])
+            
+            transition_osv = request.registry.get('crm.activity.transition')
+            transition_ids = transition_osv.search(request.cr, SUPERUSER_ID, [('user_id','=',request.session.uid)])
+            
+    #         event_ids = sock.execute(dbname, uid, pwd, 'calendar.event', 'search',\
+    #                                  [('user_id','=',uid)])
+            
+            transition_data = transition_osv.read(request.cr, SUPERUSER_ID, transition_ids, ['show_as','allday','name','description',\
+                                    'start_datetime','stop_datetime','location','write_date','start_date','stop_date'])
+            
+            event_data.extend(transition_data)
+            
     #         event_data = sock.execute(dbname, uid, pwd, 'calendar.event', 'read',\
     #                      event_ids,['show_as','allday','name','description',\
     #                                 'start_datetime','stop_datetime','location','write_date','start_date','stop_date'])

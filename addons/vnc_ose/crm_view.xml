@@ -58,10 +58,12 @@
                     <div class="o_row">
                         <field name="title_action" placeholder="e.g. Discuss proposal"
                                attrs="{'invisible': [('next_activity_id', '=', False)]}"/>
+                        <field name="show_action" invisible="1"/>
+                        <button name="add_to_activity_calendar" string="Add to transition calendar" type="object" class="btn-link" attrs="{'invisible': [('show_action', '=', False)]}"/>
                         <span class="oe_edit_only" attrs="{'invisible': [('next_activity_id', '=', False)]}">
                             <button name="log_next_activity_done" string="Done" type="object" class="btn-link"/>
-                            <button name="cancel_next_activity" string="Cancel" type="object" class="btn-link"/>
-                        </span>
+                            <button name="cancel_next_activity" string="Cancel" type="object" class="btn-link"/>                    
+                        </span>                        
                     </div>
                 </xpath>               
             </field>

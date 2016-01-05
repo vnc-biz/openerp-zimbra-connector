@@ -65,7 +65,17 @@
                             <button name="cancel_next_activity" string="Cancel" type="object" class="btn-link"/>                    
                         </span>                        
                     </div>
-                </xpath>               
+                </xpath>
+                <notebook position="inside">
+					<page string="Transition Activities">
+						<group string="Activity Transitions">
+							<field name="activity_transition_ids"
+								context="{'default_lead_id':active_id}"
+								nolabel="1" readonly="1">
+							</field>
+						</group>
+					</page>
+				</notebook>              
             </field>
         </record>
         

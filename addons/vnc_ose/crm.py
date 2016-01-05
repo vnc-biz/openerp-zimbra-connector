@@ -34,7 +34,8 @@ class crm_lead(osv.osv):
         'next_activity_3': fields.related("last_activity_id", "activity_3_id", "name", type="char", string="Next Activity 3"),
         'date_action': fields.date('Next Activity Date', select=True),
         'title_action': fields.char('Next Activity Summary'),
-        'show_action': fields.function(_check_activity, string="Show Action", type="boolean", method=True)
+        'show_action': fields.function(_check_activity, string="Show Action", type="boolean", method=True),
+        'activity_transition_ids': fields.one2many('crm.activity.transition', 'lead_id', 'Activity Transitions')
     }
 
     def log_activity_transitions(self, cr, uid, ids, vals, context=None):
@@ -122,13 +123,16 @@ class crm_lead(osv.osv):
         date_action = False
         if activity.days:
             date_action = (datetime.now() + timedelta(days=activity.days)).strftime(tools.DEFAULT_SERVER_DATETIME_FORMAT)
-            
-        transition_id = self.pool.get('crm.activity.transition').search(cr, uid, [('activity_id', '=', next_activity_id), ('start', '=', date_action), ('lead_id', '=', ids[0])])
-        
-        if transition_id:
-            show_action = False
-        else:           
+        lead_id = ids and ids[0] or None
+        if lead_id:
+            transition_id = self.pool.get('crm.activity.transition').search(cr, uid, [('activity_id', '=', next_activity_id), ('start', '=', date_action), ('lead_id', '=', lead_id)])
+            if transition_id:
+                show_action = False
+            else:           
+                show_action = True
+        else :
             show_action = True
+        
         return {'value': {
             'next_activity_1': activity.activity_1_id and activity.activity_1_id.name or False,
             'next_activity_2': activity.activity_2_id and activity.activity_2_id.name or False,

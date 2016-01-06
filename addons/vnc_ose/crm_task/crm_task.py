@@ -57,7 +57,7 @@ class calendar_event(osv.Model):
         user_obj = self.pool['res.users']
         current_user = user_obj.browse(cr, uid, uid, context=context)
         res = {}
-        if context.has_key('crm_task') and context.get('crm_task'):
+        if (context.has_key('crm_task') and context.get('crm_task')) or (context.has_key('crm_activity') and context.get('crm_activity')):
             return res
         for event in self.browse(cr, uid, ids, context):
             attendees = {}

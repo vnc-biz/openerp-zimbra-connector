@@ -60,8 +60,9 @@ class crm_lead(osv.osv):
             if next_activity:
                 date_action = False
                 if next_activity.days:
-                    date_action = (datetime.now() + timedelta(days=next_activity.days)).strftime(tools.DEFAULT_SERVER_DATETIME_FORMAT),
+                    date_action = (datetime.now() + timedelta(days=next_activity.days)).strftime(tools.DEFAULT_SERVER_DATETIME_FORMAT)
                     
+                    date_action = date_action.split(' ')[0] if date_action else False
                 transition_id = self.pool.get('crm.activity.transition').search(cr, uid, [('activity_id', '=', next_activity.id), ('start', '=', date_action), ('lead_id', '=', ids[0])])
                 
                 if transition_id:
@@ -104,8 +105,12 @@ class crm_lead(osv.osv):
         }, context=context)
 
     def add_to_activity_calendar(self, cr, uid, ids, context=None):
-        for lead in self.browse(cr, uid, ids, context=context):            
-            transition_id = self.log_activity_transitions(cr, uid, ids, {'attendee_ids': [], 'activity_id': lead.next_activity_id.id, 'lead_id': lead.id, 'start': lead.date_action, 'stop': lead.date_action, 'start_date': lead.date_action, 'name': lead.title_action, 'description': lead.description})
+        for lead in self.browse(cr, uid, ids, context=context):
+            if not lead.date_action or not lead.title_action:
+                raise osv.except_osv(_('Error!'), _('You have to define date and title of activity to add it in calendar'))        
+            
+            start = datetime.combine(datetime.strptime(lead.date_action , '%Y-%m-%d'), datetime.min.time()).strftime('%Y%m%d %H:%M:%S')
+            transition_id = self.log_activity_transitions(cr, uid, ids, {'allday' :True, 'activity_id': lead.next_activity_id.id, 'lead_id': lead.id, 'start':  lead.date_action, 'stop': lead.date_action, 'name': lead.title_action, 'description': lead.description})
             if transition_id:
                 self.write(cr, uid, lead.id, {'show_action': False})
         return True
@@ -125,7 +130,7 @@ class crm_lead(osv.osv):
             date_action = (datetime.now() + timedelta(days=activity.days)).strftime(tools.DEFAULT_SERVER_DATETIME_FORMAT)
         lead_id = ids and ids[0] or None
         if lead_id:
-            transition_id = self.pool.get('crm.activity.transition').search(cr, uid, [('activity_id', '=', next_activity_id), ('start', '=', date_action), ('lead_id', '=', lead_id)])
+            transition_id = self.pool.get('crm.activity.transition').search(cr, uid, [('activity_id', '=', next_activity_id), ('start_date', '=', date_action), ('lead_id', '=', lead_id)])
             if transition_id:
                 show_action = False
             else:           
@@ -289,6 +294,10 @@ class crm_activity_transition(osv.osv):
                                      ('done', 'Done')], 'State', \
                                      size=16, readonly=True),
     }
+    
+    def create(self, cr, uid, vals, context={}):
+        context.update({'crm_activity':True})
+        return super(crm_activity_transition, self).create(cr, uid, vals, context=context)
     
 crm_activity_transition()    
 

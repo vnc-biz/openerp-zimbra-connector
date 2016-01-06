@@ -38,14 +38,14 @@
                                options="{'no_create': True, 'no_open': True}"
                                domain="['|',('team_id','=',False),('team_id','=',section_id)]"
                                on_change="onchange_next_activity_id(next_activity_id)"/>
-                        <span attrs="{'invisible': ['|', ('last_activity_id','=',False), ('next_activity_id', '&lt;&gt;', False)]}" class="oe_edit_only">
-                            <button name="log_next_activity_1" type="object" class="btn-link" attrs="{'invisible': [('next_activity_1','=',False)]}">
+                        <span attrs="{'invisible': ['|', ('last_activity_id','=',False), ('next_activity_id', '&lt;&gt;', False)]}">
+                            <button name="log_next_activity_1" type="object" class="oe_link" attrs="{'invisible': [('next_activity_1','=',False)]}">
                                 <field name="next_activity_1" readonly="1"/>
                             </button>
-                            <button name="log_next_activity_2" type="object" class="btn-link" attrs="{'invisible': [('next_activity_2','=',False)]}">
+                            <button name="log_next_activity_2" type="object" class="oe_link" attrs="{'invisible': [('next_activity_2','=',False)]}">
                                 <field name="next_activity_2" readonly="1"/>
                             </button>
-                            <button name="log_next_activity_3" type="object" class="btn-link" attrs="{'invisible': [('next_activity_3','=',False)]}">
+                            <button name="log_next_activity_3" type="object" class="oe_link" attrs="{'invisible': [('next_activity_3','=',False)]}">
                                 <field name="next_activity_3" readonly="1"/>
                             </button>
                         </span>
@@ -59,10 +59,12 @@
                         <field name="title_action" placeholder="e.g. Discuss proposal"
                                attrs="{'invisible': [('next_activity_id', '=', False)]}"/>
                         <field name="show_action" invisible="1"/>
-                        <button name="add_to_activity_calendar" string="Add to transition calendar" type="object" class="btn-link" attrs="{'invisible': [('show_action', '=', False)]}"/>
-                        <span class="oe_edit_only" attrs="{'invisible': [('next_activity_id', '=', False)]}">
-                            <button name="log_next_activity_done" string="Done" type="object" class="btn-link"/>
-                            <button name="cancel_next_activity" string="Cancel" type="object" class="btn-link"/>                    
+                        <button name="add_to_activity_calendar" string="Add to transition calendar" type="object" class="oe_link" attrs="{'invisible': [('show_action', '=', False)]}"/>
+                        <br/>
+                        <span attrs="{'invisible': [('next_activity_id', '=', False)]}">
+                            <button name="log_next_activity_done" string="Done" type="object" class="oe_link"/>
+                            <label string=" "/>
+                            <button name="cancel_next_activity" string="Cancel" type="object" class="oe_link"/>                    
                         </span>                        
                     </div>
                 </xpath>
@@ -105,7 +107,7 @@
 	                      (0, 0, {'view_mode': 'tree', 'view_id': ref('crm_lead_view_tree_activity')}),
 	                      (0, 0, {'view_mode': 'form', 'view_id': ref('view_opportunity_form_zimbra')}), 
 	                      (0, 0, {'view_mode': 'kanban'})]"/>
-	        <field name="domain">[('type','=','opportunity')]</field>
+	        <field name="domain">[('type','=','opportunity'), ('next_activity_id', '!=', False)]</field>
 	        <field name="context">{
 	                'default_type': 'opportunity',
 	                'default_user_id': uid,

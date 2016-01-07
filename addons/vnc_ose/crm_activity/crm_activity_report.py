@@ -15,11 +15,11 @@ class crm_activity_report(models.Model):
     date = fields.Datetime('Date', readonly=True)
     author_id = fields.Many2one('res.partner', 'Author', readonly=True)
     user_id = fields.Many2one('res.users', 'Responsible', readonly=True)
-    team_id = fields.Many2one('crm.team', 'Sales Team', readonly=True)
+    team_id = fields.Many2one('crm.case.section', 'Sales Team', readonly=True)
     subtype_id = fields.Many2one('mail.message.subtype', 'Activity', readonly=True)
     country_id = fields.Many2one('res.country', 'Country', readonly=True)
     company_id = fields.Many2one('res.company', 'Company', readonly=True)
-    stage_id = fields.Many2one('crm.stage', 'Stage', readonly=True)
+    stage_id = fields.Many2one('crm.case.stage', 'Stage', readonly=True)
     partner_id = fields.Many2one('res.partner', 'Partner/Customer', readonly=True)
     lead_type = fields.Char(
         string='Type',

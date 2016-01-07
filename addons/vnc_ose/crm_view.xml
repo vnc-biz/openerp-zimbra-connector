@@ -59,7 +59,7 @@
                         <field name="title_action" placeholder="e.g. Discuss proposal"
                                attrs="{'invisible': [('next_activity_id', '=', False)]}"/>
                         <field name="show_action" invisible="1"/>
-                        <button name="add_to_activity_calendar" string="Add to transition calendar" type="object" class="oe_link" attrs="{'invisible': [('show_action', '=', False)]}"/>
+<!--                         <button name="add_to_activity_calendar" string="Add to transition calendar" type="object" class="oe_link" attrs="{'invisible': [('show_action', '=', False)]}"/> -->
                         <br/>
                         <span attrs="{'invisible': [('next_activity_id', '=', False)]}">
                             <button name="log_next_activity_done" string="Done" type="object" class="oe_link"/>

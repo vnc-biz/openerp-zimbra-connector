@@ -10,18 +10,6 @@ import pytz
 class crm_lead(osv.osv):
     _inherit="crm.lead"
     
-    def _check_activity(self, cr, uid, ids, name, args, context=None):
-        res = {}
-        for self_obj in self.browse(cr, uid, ids, context=context):
-            if self_obj.next_activity_id and self_obj.date_action:
-                transition_id = self.pool.get('crm.activity.transition').search(cr, uid, [('activity_id', '=', self_obj.next_activity_id.id), ('start', '=', self_obj.date_action), ('lead_id', '=', self_obj.id)])
-                if transition_id:
-                    res[self_obj.id] = False
-                else:           
-                    res[self_obj.id] = True
-            else:
-                res[self_obj.id] = False
-        return res
     
     _columns = {
         'contact_last_name':fields.char('Last Name',size=128),
@@ -34,13 +22,20 @@ class crm_lead(osv.osv):
         'next_activity_3': fields.related("last_activity_id", "activity_3_id", "name", type="char", string="Next Activity 3"),
         'date_action': fields.date('Next Activity Date', select=True),
         'title_action': fields.char('Next Activity Summary'),
-        'show_action': fields.function(_check_activity, string="Show Action", type="boolean", method=True),
+        'show_action': fields.boolean('Show action', readonly=False),
         'activity_transition_ids': fields.one2many('crm.activity.transition', 'lead_id', 'Activity Transitions')
     }
 
     def log_activity_transitions(self, cr, uid, ids, vals, context=None):
+        transition_id= None
         transition_obj = self.pool.get('crm.activity.transition')
-        transition_id = transition_obj.create(cr, uid, vals)
+        if ('lead_id' in vals and vals['lead_id']) and ('start_date' in vals and vals['start_date']):
+            transition_id = transition_obj.search(cr, uid, [('lead_id', '=', vals['lead_id']), ('start_date', '=', vals['start_date'])])
+        if transition_id:
+            transition_obj.write(cr, uid, transition_id[0], vals)
+            transition_id = transition_id[0]
+        else:
+            transition_id = transition_obj.create(cr, uid, vals)
         return transition_id
         
     def log_next_activity_1(self, cr, uid, ids, context=None):
@@ -63,7 +58,7 @@ class crm_lead(osv.osv):
                     date_action = (datetime.now() + timedelta(days=next_activity.days)).strftime(tools.DEFAULT_SERVER_DATETIME_FORMAT)
                     
                     date_action = date_action.split(' ')[0] if date_action else False
-                transition_id = self.pool.get('crm.activity.transition').search(cr, uid, [('activity_id', '=', next_activity.id), ('start', '=', date_action), ('lead_id', '=', ids[0])])
+                transition_id = self.pool.get('crm.activity.transition').search(cr, uid, [('start', '=', date_action), ('lead_id', '=', ids[0])])
                 
                 if transition_id:
                     show_action = False
@@ -90,7 +85,7 @@ class crm_lead(osv.osv):
             
             msg_id = lead.message_post(body_html, subtype_id=lead.next_activity_id.subtype_id.id)
             to_clear_ids.append(lead.id)
-            self.write(cr, uid, [lead.id], {'last_activity_id': lead.next_activity_id.id}, context=context)
+            self.write(cr, uid, [lead.id], {'last_activity_id': lead.next_activity_id.id, 'show_action': False}, context=context)
             #self.log_activity_transitions(cr, uid, ids, {'attendee_ids': [], 'activity_id': lead.next_activity_id.id, 'lead_id': lead.id, 'start': lead.date_action, 'stop': lead.date_action, 'start_date': lead.date_action, 'name': lead.title_action})
 
         if to_clear_ids:
@@ -190,6 +185,38 @@ class crm_lead(osv.osv):
                                });
         return {'value' : values}
 
+    
+    def create(self, cr, uid, vals, context=None):
+        if context is None:
+            context = {}
+        
+        lead_id = super(crm_lead, self).create(cr, uid, vals, context)
+        if 'next_activity_id' in vals and vals['next_activity_id'] :
+            if not vals['date_action'] or not vals['title_action']:
+                raise osv.except_osv(_('Error!'), _('You have to define date and title of activity to add it in transition'))
+            start = datetime.combine(datetime.strptime(vals['date_action'] , '%Y-%m-%d'), datetime.min.time()).strftime('%Y%m%d %H:%M:%S')
+            description = 'description' in vals and vals['description'] or ''
+            transition_id = self.log_activity_transitions(cr, uid, [], {'allday' :True, 'activity_id': vals['next_activity_id'], 'lead_id': lead_id, 'start':  vals['date_action'], 'start_date': vals['date_action'], 'stop': vals['date_action'], 'name': vals['title_action'], 'description': description})
+            if transition_id:
+                self.write(cr, uid, lead_id, {'show_action': False})
+        return lead_id
+    
+    def write(self, cr , uid, ids, vals, context=None):
+        if context is None:
+            context = {}
+        vals['show_action'] = False
+        result = super(crm_lead, self).write(cr, uid, ids, vals, context)
+        if ('next_activity_id' in vals and vals['next_activity_id']) or ('date_action' in vals and vals['date_action']) or ('title_action' in vals and vals['title_action']) :
+            write_rec = self.browse(cr, uid, ids[0])
+            if not write_rec.next_activity_id:
+                return True
+            if not (write_rec.date_action or write_rec.title_action):
+                raise osv.except_osv(_('Error!'), _('You have to define date and title of activity to add it in transition'))
+            start = datetime.combine(datetime.strptime(write_rec.date_action , '%Y-%m-%d'), datetime.min.time()).strftime('%Y%m%d %H:%M:%S')
+            description = write_rec.description or ''
+            transition_id = self.log_activity_transitions(cr, uid, [], {'allday' :True, 'activity_id': write_rec.next_activity_id.id, 'lead_id': write_rec.id, 'start':  write_rec.date_action, 'start_date': write_rec.date_action, 'stop': write_rec.date_action, 'name': write_rec.title_action, 'description': description})
+        return result
+    
     def _lead_create_contact(self, cr, uid, lead, name, is_company, \
                              parent_id=False, context=None):
         partner = self.pool.get('res.partner')

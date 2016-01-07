@@ -76,7 +76,7 @@
 	                    <group>
 	                        <field name="activity_id"/>
 	                        <field name="lead_id"/>
-	                        <field name="start"/>
+	                        <field name="start_date"/>
 	                        <field name="state" invisible="1"/>
 	                    </group>
 	                </group>
@@ -92,7 +92,7 @@
 	                <field name="name"/>
 	                <field name="activity_id"/>
 	                <field name="lead_id"/>
-	                <field name="start"/>
+	                <field name="start_date"/>
 	                <field name="state" invisible="1"/>
 	            </tree>
 	        </field>

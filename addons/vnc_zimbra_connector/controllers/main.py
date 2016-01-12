@@ -78,6 +78,20 @@ class ZimbraVNCController(http.Controller):
                          'task_calender'+'.ics')]
         return request.make_response(cal_data, headers=headers)
         
+    
+    def get_lead_name(self, lead_id):
+        lead_osv = request.registry.get('crm.lead')
+        lead_data = lead_osv.read(request.cr, SUPERUSER_ID, lead_id, ['name', 'partner_id', 'contact_name'])        
+        name= ''
+        if lead_data['partner_id']:
+            name = lead_data['partner_id'][1]
+        elif lead_data['contact_name']:
+            name = lead_data['contact_name']
+        else:
+            name = lead_data['name']
+        
+        return name
+    
     def make_service_call(self, option):
         def uid_generat(data):# UID generat
             sha_obj = hashlib.sha1(data)
@@ -164,7 +178,7 @@ class ZimbraVNCController(http.Controller):
     #                                  [('user_id','=',uid)])
             
             transition_data = transition_osv.read(request.cr, SUPERUSER_ID, transition_ids, ['show_as','allday','name','description',\
-                                    'start_datetime','stop_datetime','location','write_date','start_date','stop_date'])
+                                    'start_datetime','stop_datetime','location','write_date','start_date','stop_date', 'lead_id'])
             
             event_data.extend(transition_data)
             
@@ -184,6 +198,9 @@ class ZimbraVNCController(http.Controller):
             cal.add('VERSION', '2.0')
             cal.add('METHOD', 'PUBLISH')
             for data in event_data:
+                name =""
+                if 'lead_id' in data and data['lead_id']:
+                    name = self.get_lead_name(data['lead_id'][0])
                 event = Event()
                 if data['allday']:
                     event.add('CREATED', date.today())
@@ -203,7 +220,8 @@ class ZimbraVNCController(http.Controller):
                 if data['show_as']:
                     event.add('X-MICROSOFT-CDO-INTENDEDSTATUS', data['show_as'])
                 event.add('UID', uid_generat('crmCalendar'+str(data['id'])))
-                event.add('SUMMARY', data['name'])
+                name = name+', '+data['name'] if name else data['name']
+                event.add('SUMMARY', name)
                 if data['description']:
                     event.add('DESCRIPTION', data['description'])
                 if data['location']:

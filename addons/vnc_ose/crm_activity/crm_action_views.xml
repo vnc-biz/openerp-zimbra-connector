@@ -97,12 +97,26 @@
 	            </tree>
 	        </field>
 	    </record>
+	    
+	     <!-- CRM Activity Calendar -->
+	    <record model="ir.ui.view" id="crm_activity_transition_view_calendar">
+	        <field name="name">Activity Calendar</field>
+	        <field name="model">crm.activity.transition</field>
+	        <field name="priority" eval="2"/>
+	        <field name="arch" type="xml">
+	            <calendar string="Activities" date_start="start_date" date_stop="stop_date" all_day="allday" 
+	              color="user_id">	                
+	                <field name="activity_id"/>
+	                <field name="lead_id"/>
+	            </calendar>
+	        </field>
+	    </record>
 	
 	    <record id="crm_activity_transition_action" model="ir.actions.act_window">
 	        <field name="name">Activity Transitions</field>
 	        <field name="res_model">crm.activity.transition</field>
 	        <field name="view_type">form</field>
-	        <field name="view_mode">tree,form</field>
+	        <field name="view_mode">calendar,tree,form</field>
 	    </record>
 	
 	    <menuitem id="crm_activity_transition_menu" action="crm_activity_transition_action"

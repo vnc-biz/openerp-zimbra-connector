@@ -8,6 +8,6 @@ access_crm_task,crm.task,model_crm_task,base.group_user,1,1,1,1
 "access_crm_activity_manager","crm.activity.manager","model_crm_activity","base.group_sale_manager",1,1,1,1
 "access_crm_activity_salesman","crm.activity.salesman","model_crm_activity","base.group_sale_salesman",1,1,1,0
 "access_crm_activity_report_user","crm.activity.report.user","model_crm_activity_report","base.group_user",1,0,0,0
-"access_crm_activity_transition_user","crm.activity.transition.user","model_crm_activity_transition","base.group_user",1,1,1,0
+"access_crm_activity_transition_user","crm.activity.transition.user","model_crm_activity_transition","base.group_user",1,1,1,1
 "access_crm_activity_transition_manager","crm.activity.transition.manager","model_crm_activity_transition","base.group_sale_manager",1,1,1,1
-"access_crm_activity_transition_salesman","crm.activity.transition.salesman","model_crm_activity_transition","base.group_sale_salesman",1,1,1,0
+"access_crm_activity_transition_salesman","crm.activity.transition.salesman","model_crm_activity_transition","base.group_sale_salesman",1,1,1,1

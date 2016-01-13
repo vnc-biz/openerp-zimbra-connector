@@ -201,16 +201,20 @@ class ZimbraVNCController(http.Controller):
                 name =""
                 if 'lead_id' in data and data['lead_id']:
                     name = self.get_lead_name(data['lead_id'][0])
-                event = Event()
+                event = Event()                
                 if data['allday']:
                     event.add('CREATED', date.today())
-                    event.add('DTSTART', DT.datetime.combine(DT.datetime.strptime(data['start_date'], '%Y-%m-%d'), DT.time.min))
-                    event.add('DTEND', DT.datetime.combine(DT.datetime.strptime(data['stop_date'], '%Y-%m-%d'), DT.time.max))
+                    if data['start_date']:
+                        event.add('DTSTART', DT.datetime.combine(DT.datetime.strptime(data['start_date'], '%Y-%m-%d'), DT.time.min))
+                    if data['stop_date']:
+                        event.add('DTEND', DT.datetime.combine(DT.datetime.strptime(data['stop_date'], '%Y-%m-%d'), DT.time.max))
                     event.add('X-MICROSOFT-CDO-ALLDAYEVENT', 'TRUE')
                 else:
                     event.add('CREATED', date.today())
-                    event.add('DTSTART', ics_datetime(data['start_datetime']))
-                    event.add('DTEND', ics_datetime(data['stop_datetime']))
+                    if data['start_datetime']:
+                        event.add('DTSTART', ics_datetime(data['start_datetime']))
+                    if data['stop_datetime']:
+                        event.add('DTEND', ics_datetime(data['stop_datetime']))
                     event.add('X-MICROSOFT-CDO-ALLDAYEVENT', 'FALSE')
                 if data['write_date']:
                     event.add('DTSTAMP', DT.datetime.strptime(data['write_date'],\

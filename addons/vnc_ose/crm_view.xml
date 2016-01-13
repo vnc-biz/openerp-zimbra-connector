@@ -14,6 +14,37 @@
                 </xpath>
             </field>
         </record>
+        
+        <record id="do_unlink_view" model="ir.ui.view">
+	        <field name="name">crm.activity.do.unlink.form</field>
+	        <field name="model">crm.activity.do.unlink</field>
+	        <field name="arch" type="xml">
+	            <form string="Activity Unlink">
+	            	<group colspan="4">
+						<label string="Attention, if you delete this appointment you will also affect the next activity of lead" colspan="2" 
+						style="color:RED;font-size:13px;" />
+						
+						
+					</group>
+					<footer>
+                        <button name="do_delete" type="object" string="Delete Transition"	icon="gtk-ok" />
+                        or
+                        <button string="_Cancel" icon="gtk-cancel" special="cancel" />
+                    </footer>
+	            </form>
+	        </field>
+	    </record>
+        
+        
+        <record model="ir.actions.act_window" id="action_do_unlink">
+			<field name="name">Unlink Activity Transition</field>
+			<field name="res_model">crm.activity.transition</field>
+			<field name="view_type">form</field>
+			<field name="view_mode">form</field>
+			<field name="view_id" ref="do_unlink_view" />
+			<field name="context">{'default_do_unlink':1}</field>
+			<field name="target">new</field>
+		</record>
         <!-- Inherits Opportunity form View -->
         <record id="view_opportunity_form_zimbra" model="ir.ui.view">
             <field name="name">opportunity.form.zimbra</field>
@@ -72,12 +103,13 @@
 					<page string="Transition Activities">
 						<group string="Activity Transitions">
 							<field name="activity_transition_ids" context="{'default_lead_id':active_id}" nolabel="1" editable="top">
-								<tree string="Activity Transition" delete="true" create="false">
+								<tree string="Activity Transition" delete="false" create="false">
 					                <field name="name" string="Transition Name"/>
 					                <field name="activity_id"/>
 					                <field name="lead_id"/>
 					                <field name="start_date"/>
 					                <field name="state" invisible="1"/>
+					                <button name="do_delete" string="Delete" type="object" icon="gtk-cancel"/>
 					            </tree>
 					            <form string="Activity Transition">
 					                <div class="oe_title">

@@ -326,6 +326,53 @@ class crm_activity_transition(osv.osv):
         context.update({'crm_activity':True})
         return super(crm_activity_transition, self).create(cr, uid, vals, context=context)
     
-crm_activity_transition()    
+    def do_delete(self, cr, uid, ids, context=None, *args):
+        if context is None:
+            context = {}
+        for item in self.browse(cr, uid, ids, context=context):            
+            if item.activity_id and item.lead_id and item.lead_id.next_activity_id:
+                if item.activity_id.id==item.lead_id.next_activity_id.id:
+                    value = {
+                            'name': _('Activity Transition Unlink'),
+                            'view_type': 'form',
+                            'view_mode': 'form',
+                            'res_model': 'crm.activity.do.unlink',
+                            'res_id': False,
+                            'view_id': False,
+                            'type': 'ir.actions.act_window',
+                            'target': 'new'
+                        }
+                    return value
+                else:
+                   self.pool.get('crm.lead').write(cr, uid, [item.lead_id.id], {'activity_transition_ids': [(2, item.id, False)]})
+            else:
+                self.pool.get('crm.lead').write(cr, uid, [item.lead_id.id], {'activity_transition_ids': [(2, item.id, False)]})
+        
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'reload'
+            }
+             
+    
+crm_activity_transition()
+
+class crm_activity_do_unlink(osv.osv_memory):
+    _name = 'crm.activity.do.unlink'
+    
+    
+    
+    def do_delete(self, cr, uid, ids, context=None, *args):
+        if context is None:
+            context = {}
+        activity_trans_obj = self.pool.get('crm.activity.transition')
+        data = context and context.get('active_ids', []) or []
+        for item in activity_trans_obj.browse(cr, uid, data):
+            if item.lead_id:
+                self.pool.get('crm.lead').write(cr, uid, [item.lead_id.id], {'activity_transition_ids': [(2, item.id, False)]})
+        
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'reload'
+            }
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

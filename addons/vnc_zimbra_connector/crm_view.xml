@@ -46,7 +46,26 @@
                 </notebook>
             </field>
         </record>
+	
+		
+		<record id="view_calendar_event_search" model="ir.ui.view">
+			<field name="name">calendar.event.search</field>
+			<field name="model">calendar.event</field>
+			<field name="inherit_id" ref="calendar.view_calendar_event_search" />
+			<field name="arch" type="xml">
+				<xpath expr="//filter[@string='My Events']" position="replace">
+					<filter icon="terp-go-today" name="myevents" string="My Events" domain="[('user_id','=',uid)]" help="My Events"/>
+				</xpath>
+			</field>
+		</record>
+		
+		<record model="ir.actions.act_window" id="calendar.action_calendar_event">			
+			<field name="context">{
+                'search_default_myevents':1                
+            }</field>
+		</record>
 
+		
         <!-- Migration v8: Calendar Meeting menu 
         <menuitem name="Calendar Meeting"
         id="calendar.mail_menu_calendar" parent="mail.mail_my_stuff"

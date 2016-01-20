@@ -79,6 +79,34 @@ class ZimbraVNCController(http.Controller):
         return request.make_response(cal_data, headers=headers)
         
     
+    
+    @http.route('/birthdaycalendar', type='http', auth='none')
+    def zimbra_sync_birthday_calendar(self, **post):
+        environ = request.httprequest.environ
+        auth = environ.get('HTTP_AUTHORIZATION')
+        if auth:
+            scheme, data = auth.split(None, 1)
+            assert scheme.lower() == 'basic'
+            username, password = data.decode('base64').split(':', 1)
+            username = urllib2.unquote(username)
+            password = urllib2.unquote(password)
+            query_str = environ.get('QUERY_STRING')
+            para_final = query_str.split('=')
+            uid = request.session.authenticate(para_final[1], username, password)
+        if not request.session.uid:
+            url = request.httprequest.url_root + "web/login" + "?redirect=" + "/birthdaycalendar"
+            redirect = werkzeug.utils.redirect(url, 303)
+            redirect.autocorrect_location_header = True
+            return redirect  
+        cal_data = self.make_service_call('birthdaycalendar')
+        headers = [('cache-control', 'no-cache'), \
+                        ('Pragma', 'no-cache'), \
+                        ('Content-Type', 'text/calendar'), \
+                        ('Content-length', len(cal_data)), \
+                        ('Content-Disposition', 'attachment; filename='+\
+                         'task_calender'+'.ics')]
+        return request.make_response(cal_data, headers=headers)
+    
     def get_lead_name(self, lead_id):
         lead_osv = request.registry.get('crm.lead')
         lead_data = lead_osv.read(request.cr, SUPERUSER_ID, lead_id, ['name', 'partner_id', 'contact_name'])        
@@ -97,6 +125,74 @@ class ZimbraVNCController(http.Controller):
             sha_obj = hashlib.sha1(data)
             return sha_obj.hexdigest()
         
+        if option == 'birthdaycalendar':
+            emp_osv = request.registry.get('hr.employee')
+            emp_ids = emp_osv.search(request.cr, SUPERUSER_ID, [])
+            print 'emp ids ::::::::::::::::',emp_ids
+            emp_data = emp_osv.read(request.cr, SUPERUSER_ID, emp_ids, ['id', 'first_name', 'last_name', 'birthday', 'write_date', 'started_career_vnc_on'])
+            print 'emp_data ::::::::::::',emp_data
+            
+            def ics_datetime(idate):
+                if idate:
+                    #returns the datetime as UTC, because it is stored as it in the database
+                    idate = idate.split('.', 1)[0]
+                    return DT.datetime.strptime(idate,\
+                         '%Y-%m-%d %H:%M:%S').replace(tzinfo=pytz.timezone('UTC'))
+                return False
+            
+            cal = Calendar()
+            cal.add('PRODID', 'Zimbra-Calendar-Provider')
+            cal.add('VERSION', '2.0')
+            cal.add('METHOD', 'PUBLISH')
+            cal.add('RRULE', {'FREQ':'YEARLY'})
+    
+            for data in emp_data:                
+                if 'birthday' in data and data['birthday']:
+                    event = Event()
+                    event.add('CREATED', date.today())
+                    event.add('DTSTART', DT.datetime.combine(DT.datetime.strptime(data['birthday'], '%Y-%m-%d'), DT.time.min))
+                    event.add('DTEND', DT.datetime.combine(DT.datetime.strptime(data['birthday'], '%Y-%m-%d'), DT.time.max))
+                    event.add('X-MICROSOFT-CDO-ALLDAYEVENT', 'TRUE')
+                    if data['write_date']:
+                        event.add('DTSTAMP', DT.datetime.strptime(data['write_date'],\
+                                                                   '%Y-%m-%d %H:%M:%S'))
+                        event.add('LAST-MODIFIED', \
+                        DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S'))
+#                     if data['show_as']:
+#                         event.add('X-MICROSOFT-CDO-INTENDEDSTATUS', data['show_as'])
+                    event.add('UID', uid_generat('crmBirthdayCalendar'+str(data['id'])))
+                    name = data['first_name'] + " " + data['last_name']+"'s Birthday"
+                    event.add('SUMMARY', name)
+#                     if data['description']:
+#                         event.add('DESCRIPTION', data['description'])
+#                     if data['location']:
+#                         event.add('LOCATION', data['location'])
+                    cal.add_component(event)
+                    
+                if 'started_career_vnc_on' in data and data['started_career_vnc_on']:
+                    event = Event()
+                    event.add('CREATED', date.today())
+                    event.add('DTSTART', DT.datetime.combine(DT.datetime.strptime(data['started_career_vnc_on'], '%Y-%m-%d'), DT.time.min))
+                    event.add('DTEND', DT.datetime.combine(DT.datetime.strptime(data['started_career_vnc_on'], '%Y-%m-%d'), DT.time.max))
+                    event.add('X-MICROSOFT-CDO-ALLDAYEVENT', 'TRUE')
+                    if data['write_date']:
+                        event.add('DTSTAMP', DT.datetime.strptime(data['write_date'],\
+                                                                   '%Y-%m-%d %H:%M:%S'))
+                        event.add('LAST-MODIFIED', \
+                        DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S'))
+#                     if data['show_as']:
+#                         event.add('X-MICROSOFT-CDO-INTENDEDSTATUS', data['show_as'])
+                    event.add('UID', uid_generat('crmAnniversaryCalendar'+str(data['id'])))
+                    name = data['first_name'] + " " + data['last_name']+"'s Anniversary at VNC"
+                    event.add('SUMMARY', name)
+#                     if data['description']:
+#                         event.add('DESCRIPTION', data['description'])
+#                     if data['location']:
+#                         event.add('LOCATION', data['location'])
+                    cal.add_component(event)
+            return cal.to_ical()
+        
+            
         if option == 'task':
             task_osv = request.registry.get('crm.task')
             task_ids = task_osv.search(request.cr, SUPERUSER_ID, [('task_type', '=', 't'), ('user_id', '=', request.session.uid), ('state', '!=', 'cancel')])

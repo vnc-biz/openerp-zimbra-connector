@@ -128,9 +128,7 @@ class ZimbraVNCController(http.Controller):
         if option == 'birthdaycalendar':
             emp_osv = request.registry.get('hr.employee')
             emp_ids = emp_osv.search(request.cr, SUPERUSER_ID, [])
-            print 'emp ids ::::::::::::::::',emp_ids
             emp_data = emp_osv.read(request.cr, SUPERUSER_ID, emp_ids, ['id', 'first_name', 'last_name', 'birthday', 'write_date', 'started_career_vnc_on'])
-            print 'emp_data ::::::::::::',emp_data
             
             def ics_datetime(idate):
                 if idate:
@@ -144,14 +142,14 @@ class ZimbraVNCController(http.Controller):
             cal.add('PRODID', 'Zimbra-Calendar-Provider')
             cal.add('VERSION', '2.0')
             cal.add('METHOD', 'PUBLISH')
-            cal.add('RRULE', {'FREQ':'YEARLY'})
+            cal.add('RRULE', {'FREQ':'YEARLY', 'BYMONTH': 11, 'BYDAY': '1su'})
     
             for data in emp_data:                
                 if 'birthday' in data and data['birthday']:
                     event = Event()
                     event.add('CREATED', date.today())
                     event.add('DTSTART', DT.datetime.combine(DT.datetime.strptime(data['birthday'], '%Y-%m-%d'), DT.time.min))
-                    event.add('DTEND', DT.datetime.combine(DT.datetime.strptime(data['birthday'], '%Y-%m-%d'), DT.time.max))
+                    event.add('DTEND', DT.datetime.combine(DT.datetime.strptime(data['birthday'], '%Y-%m-%d'), DT.time.min))
                     event.add('X-MICROSOFT-CDO-ALLDAYEVENT', 'TRUE')
                     if data['write_date']:
                         event.add('DTSTAMP', DT.datetime.strptime(data['write_date'],\
@@ -161,6 +159,7 @@ class ZimbraVNCController(http.Controller):
 #                     if data['show_as']:
 #                         event.add('X-MICROSOFT-CDO-INTENDEDSTATUS', data['show_as'])
                     event.add('UID', uid_generat('crmBirthdayCalendar'+str(data['id'])))
+                    event.add('RRULE', {'FREQ':'YEARLY', 'INTERVAL': 1}) 
                     name = data['first_name'] + " " + data['last_name']+"'s Birthday"
                     event.add('SUMMARY', name)
 #                     if data['description']:
@@ -183,6 +182,7 @@ class ZimbraVNCController(http.Controller):
 #                     if data['show_as']:
 #                         event.add('X-MICROSOFT-CDO-INTENDEDSTATUS', data['show_as'])
                     event.add('UID', uid_generat('crmAnniversaryCalendar'+str(data['id'])))
+                    event.add('RRULE', {'FREQ':'YEARLY', 'INTERVAL': 1}) 
                     name = data['first_name'] + " " + data['last_name']+"'s Anniversary at VNC"
                     event.add('SUMMARY', name)
 #                     if data['description']:

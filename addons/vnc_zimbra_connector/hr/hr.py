@@ -9,6 +9,7 @@ class hr_employee(osv.osv):
     _columns={
               'first_name':fields.char('First Name',size=128),
               'last_name':fields.char('Last Name',size=128),
+              'started_career_vnc_on': fields.date('Started career here on'),
               }
 
     def employee_sync_openerp(self,cr, uid, zuid=False, addbookid=False, context=None):

@@ -104,7 +104,7 @@ class ZimbraVNCController(http.Controller):
                         ('Content-Type', 'text/calendar'), \
                         ('Content-length', len(cal_data)), \
                         ('Content-Disposition', 'attachment; filename='+\
-                         'task_calender'+'.ics')]
+                         'birthday_calendar'+'.ics')]
         return request.make_response(cal_data, headers=headers)
     
     def get_lead_name(self, lead_id):

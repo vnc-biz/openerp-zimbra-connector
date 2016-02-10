@@ -186,10 +186,15 @@ class crm_lead(osv.osv):
         return {'value' : values}
 
     
+    def convert_opportunity(self, cr, uid, ids, partner_id, user_ids=False, section_id=False, context=None):
+        if context is None:
+            context = {}
+        context.update({'convert_from_lead': 1})
+        return super(crm_lead, self).convert_opportunity(cr, uid, ids, partner_id, user_ids, section_id, context=context)
+        
     def create(self, cr, uid, vals, context=None):
         if context is None:
             context = {}
-        
         lead_id = super(crm_lead, self).create(cr, uid, vals, context)
         if 'next_activity_id' in vals and vals['next_activity_id'] :
             if not vals['date_action'] or not vals['title_action']:
@@ -206,7 +211,7 @@ class crm_lead(osv.osv):
             context = {}
         vals['show_action'] = False
         result = super(crm_lead, self).write(cr, uid, ids, vals, context)
-        if ('next_activity_id' in vals and vals['next_activity_id']) or ('date_action' in vals and vals['date_action']) or ('title_action' in vals and vals['title_action']) :
+        if not ('convert_from_lead' in context and context['convert_from_lead']) and (('next_activity_id' in vals and vals['next_activity_id']) or ('date_action' in vals and vals['date_action']) or ('title_action' in vals and vals['title_action'])) :
             write_rec = self.browse(cr, uid, ids[0])
             if not write_rec.next_activity_id:
                 return True

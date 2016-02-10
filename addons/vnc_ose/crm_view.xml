@@ -45,6 +45,84 @@
 			<field name="context">{'default_do_unlink':1}</field>
 			<field name="target">new</field>
 		</record>
+		
+		<!-- Inherits Lead form view -->
+		<record id="view_lead_form_zimbra" model="ir.ui.view">
+            <field name="name">lead.form.zimbra</field>
+            <field name="model">crm.lead</field>
+            <field name="priority">110</field>
+            <field name="inherit_id" ref="crm.crm_case_form_view_leads" />
+            <field name="arch" type="xml">
+            	<xpath expr="//field[@name='fax']" position="after">
+            		<field name="last_activity_id" invisible="1"/>
+            		<label for="next_activity_id"/>            		
+            		<div class="o_row">
+                        <field name="next_activity_id"
+                               options="{'no_create': True, 'no_open': True}"
+                               domain="['|',('team_id','=',False),('team_id','=',section_id)]"
+                               on_change="onchange_next_activity_id(next_activity_id)"/>
+                        <span attrs="{'invisible': ['|', ('last_activity_id','=',False), ('next_activity_id', '&lt;&gt;', False)]}">
+                            <button name="log_next_activity_1" type="object" class="oe_link" attrs="{'invisible': [('next_activity_1','=',False)]}">
+                                <field name="next_activity_1" readonly="1"/>
+                            </button>
+                            <button name="log_next_activity_2" type="object" class="oe_link" attrs="{'invisible': [('next_activity_2','=',False)]}">
+                                <field name="next_activity_2" readonly="1"/>
+                            </button>
+                            <button name="log_next_activity_3" type="object" class="oe_link" attrs="{'invisible': [('next_activity_3','=',False)]}">
+                                <field name="next_activity_3" readonly="1"/>
+                            </button>
+                        </span>
+                        <span class="oe_read_only oe_form_field"
+                              attrs="{'invisible': ['|', ('next_activity_id', '=', False), ('date_action', '=', False)]}">&#160;on&#160;</span>
+                        <field name="date_action" attrs="{'invisible': [('next_activity_id', '=', False)]}" placeholder="Choose a date..."/>
+                        <span class="oe_read_only oe_form_field"
+                              attrs="{'invisible': ['|', ('next_activity_id', '=', False), ('title_action', '=', False)]}">:&#160;</span>
+                    	<field name="title_action" placeholder="e.g. Discuss proposal"
+                               attrs="{'invisible': [('next_activity_id', '=', False)]}"/>
+                        <field name="show_action" invisible="1"/>
+<!--                         <button name="add_to_activity_calendar" string="Add to transition calendar" type="object" class="oe_link" attrs="{'invisible': [('show_action', '=', False)]}"/> -->
+                        <br/>
+                        <span attrs="{'invisible': [('next_activity_id', '=', False)]}">
+                            <button name="log_next_activity_done" string="Done" type="object" class="oe_link"/>
+                            <label string=" "/>
+                            <button name="cancel_next_activity" string="Cancel" type="object" class="oe_link"/>                    
+                        </span>   
+                    </div>                   
+            	</xpath>
+            	<notebook position="inside">
+					<page string="Transition Activities">
+						<group string="Activity Transitions">
+							<field name="activity_transition_ids" context="{'default_lead_id':active_id}" nolabel="1" editable="top">
+								<tree string="Activity Transition" delete="false" create="false">
+					                <field name="name" string="Transition Name"/>
+					                <field name="activity_id"/>
+					                <field name="lead_id"/>
+					                <field name="start_date"/>
+					                <field name="state" invisible="1"/>
+					                <button name="do_delete" string="Delete" type="object" icon="gtk-cancel"/>
+					            </tree>
+					            <form string="Activity Transition">
+					                <div class="oe_title">
+					                    <label for="name" class="oe_edit_only"/>
+					                    <h1><field name="name" string="Transition Name"/></h1>
+					                </div>
+					                <group>
+					                    <group>
+					                        <field name="activity_id" readonly="1"/>
+					                        <field name="lead_id" invisible="1"/>
+					                        <field name="start_date" readonly="1"/>
+					                        <field name="state" invisible="1"/>
+					                    </group>
+					                </group>
+					            </form>						
+							</field>
+						</group>
+					</page>
+				</notebook>            
+           </field>
+       	</record>
+       	
+       	
         <!-- Inherits Opportunity form View -->
         <record id="view_opportunity_form_zimbra" model="ir.ui.view">
             <field name="name">opportunity.form.zimbra</field>

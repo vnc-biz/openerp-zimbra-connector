@@ -108,6 +108,8 @@ class email_server_tools(osv.osv_memory):
         #TOCHECK: put this function in mailgateway module
         if isinstance(message, unicode):
             message = message.encode('utf-8')
+        else:
+            message = message.decode('utf-8')            
         msg_txt = email.message_from_string(message)
         message_id = msg_txt.get('message-id', False)
         msg = {}
@@ -154,8 +156,8 @@ class email_server_tools(osv.osv_memory):
 
         if not msg_txt.is_multipart() or 'text/plain' in \
                                                 msg.get('Content-Type', ''):
-            encoding = msg_txt.get_content_charset()
-            content = msg_txt.get_payload(decode=True)
+            encoding = msg_txt.get_content_charset()            
+            content = msg_txt.get_payload(decode=True) 
             html_header = u"""
             <html>
             <body>
@@ -164,6 +166,11 @@ class email_server_tools(osv.osv_memory):
             </html>
             """
             original_txt = content
+            if isinstance(original_txt, unicode):
+                original_txt = original_txt.encode('utf-8')
+            else:               
+                original_txt = tools.ustr(original_txt, msg.get('encoding'))
+            
             # catch any mis-typed en dashes
             converted_txt = original_txt.replace(" - ", " -- ")
             converted_txt = smartypants.educateQuotes(converted_txt)
@@ -173,7 +180,7 @@ class email_server_tools(osv.osv_memory):
             converted_txt = re.sub("\r\n", "\n", converted_txt)
             converted_txt = re.sub("\n\n+", "\n", converted_txt)
             converted_txt = re.sub("\n", "\n\n", converted_txt)
-            converted_txt = unicode( converted_txt, "utf8" )
+            
             html = markdown.markdown(converted_txt)
             html_out = html_header + html + html_footer
             body = html_out

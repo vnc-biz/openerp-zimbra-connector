@@ -80,6 +80,7 @@
                     	<field name="title_action" placeholder="e.g. Discuss proposal"
                                attrs="{'invisible': [('next_activity_id', '=', False)]}"/>
                         <field name="show_action" invisible="1"/>
+                        <button name="add_more_details" string="Add more details" type="object" class="oe_link" attrs="{'invisible': [('next_activity_id', '=', False)]}"/>
 <!--                         <button name="add_to_activity_calendar" string="Add to transition calendar" type="object" class="oe_link" attrs="{'invisible': [('show_action', '=', False)]}"/> -->
                         <br/>
                         <span attrs="{'invisible': [('next_activity_id', '=', False)]}">
@@ -100,21 +101,7 @@
 					                <field name="start_date"/>
 					                <field name="state" invisible="1"/>
 					                <button name="do_delete" string="Delete" type="object" icon="gtk-cancel"/>
-					            </tree>
-					            <form string="Activity Transition">
-					                <div class="oe_title">
-					                    <label for="name" class="oe_edit_only"/>
-					                    <h1><field name="name" string="Transition Name"/></h1>
-					                </div>
-					                <group>
-					                    <group>
-					                        <field name="activity_id" readonly="1"/>
-					                        <field name="lead_id" invisible="1"/>
-					                        <field name="start_date" readonly="1"/>
-					                        <field name="state" invisible="1"/>
-					                    </group>
-					                </group>
-					            </form>						
+					            </tree>					            			
 							</field>
 						</group>
 					</page>
@@ -168,6 +155,7 @@
                         <field name="title_action" placeholder="e.g. Discuss proposal"
                                attrs="{'invisible': [('next_activity_id', '=', False)]}"/>
                         <field name="show_action" invisible="1"/>
+                        <button name="add_more_details" string="Add more details" type="object" class="oe_link" attrs="{'invisible': [('next_activity_id', '=', False)]}"/>
 <!--                         <button name="add_to_activity_calendar" string="Add to transition calendar" type="object" class="oe_link" attrs="{'invisible': [('show_action', '=', False)]}"/> -->
                         <br/>
                         <span attrs="{'invisible': [('next_activity_id', '=', False)]}">
@@ -188,21 +176,7 @@
 					                <field name="start_date"/>
 					                <field name="state" invisible="1"/>
 					                <button name="do_delete" string="Delete" type="object" icon="gtk-cancel"/>
-					            </tree>
-					            <form string="Activity Transition">
-					                <div class="oe_title">
-					                    <label for="name" class="oe_edit_only"/>
-					                    <h1><field name="name" string="Transition Name"/></h1>
-					                </div>
-					                <group>
-					                    <group>
-					                        <field name="activity_id" readonly="1"/>
-					                        <field name="lead_id" invisible="1"/>
-					                        <field name="start_date" readonly="1"/>
-					                        <field name="state" invisible="1"/>
-					                    </group>
-					                </group>
-					            </form>						
+					            </tree>					           				
 							</field>
 						</group>
 					</page>

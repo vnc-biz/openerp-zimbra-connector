@@ -109,6 +109,28 @@ class crm_lead(osv.osv):
             if transition_id:
                 self.write(cr, uid, lead.id, {'show_action': False})
         return True
+    
+    
+    def add_more_details(self, cr, uid, ids, context=None):
+        for lead in self.browse(cr, uid, ids, context=context):
+            domain = []
+            if lead.next_activity_id:
+                domain.append(('activity_id', '=', lead.next_activity_id.id))
+            if lead.date_action:
+                domain.append(('start_date', '=', lead.date_action))
+            domain.append(('lead_id', '=', lead.id))
+            transition_ids = self.pool.get('crm.activity.transition').search(cr, uid, domain)
+            return {
+                      'name': _('Activity Transition Form'),
+                      'view_type': 'form',
+                      'view_mode': 'form',
+                      'res_model': 'crm.activity.transition',
+                      'type': 'ir.actions.act_window',
+                      'res_id': transition_ids[0],
+                      'view_id': self.pool.get('ir.model.data').xmlid_to_res_id(cr, uid, 'crm_activity_transition_view_form')
+                      }
+        return True
+        
         
     def onchange_next_activity_id(self, cr, uid, ids, next_activity_id, context=None):
         if not next_activity_id:
@@ -195,13 +217,20 @@ class crm_lead(osv.osv):
     def create(self, cr, uid, vals, context=None):
         if context is None:
             context = {}
+        transition_pool = self.pool['crm.activity.transition']
         lead_id = super(crm_lead, self).create(cr, uid, vals, context)
         if 'next_activity_id' in vals and vals['next_activity_id'] :
             if not vals['date_action'] or not vals['title_action']:
                 raise osv.except_osv(_('Error!'), _('You have to define date and title of activity to add it in transition'))
             start = datetime.combine(datetime.strptime(vals['date_action'] , '%Y-%m-%d'), datetime.min.time()).strftime('%Y%m%d %H:%M:%S')
             description = 'description' in vals and vals['description'] or ''
-            transition_id = self.log_activity_transitions(cr, uid, [], {'allday' :True, 'activity_id': vals['next_activity_id'], 'lead_id': lead_id, 'start':  vals['date_action'], 'start_date': vals['date_action'], 'stop': vals['date_action'], 'name': vals['title_action'], 'description': description})
+            res = {'allday' :True, 'activity_id': vals['next_activity_id'], 'lead_id': lead_id, 'start':  vals['date_action'], \
+                                'start_date': vals['date_action'], 'stop': vals['date_action'], 'name': vals['title_action'], 'description': description, 'partner_id': vals['partner_id']}
+            if vals['partner_id']:               
+                onchange_val = transition_pool.onchange_partner_id(cr, uid, [], vals['partner_id'])
+                res.update(onchange_val['value'])
+            
+            transition_id = self.log_activity_transitions(cr, uid, [], res)
             if transition_id:
                 self.write(cr, uid, lead_id, {'show_action': False})
         return lead_id
@@ -209,6 +238,7 @@ class crm_lead(osv.osv):
     def write(self, cr , uid, ids, vals, context=None):
         if context is None:
             context = {}
+        transition_pool = self.pool['crm.activity.transition']
         vals['show_action'] = False
         result = super(crm_lead, self).write(cr, uid, ids, vals, context)
         if not ('convert_from_lead' in context and context['convert_from_lead']) and (('next_activity_id' in vals and vals['next_activity_id']) or ('date_action' in vals and vals['date_action']) or ('title_action' in vals and vals['title_action'])) :
@@ -219,7 +249,12 @@ class crm_lead(osv.osv):
                 raise osv.except_osv(_('Error!'), _('You have to define date and title of activity to add it in transition'))
             start = datetime.combine(datetime.strptime(write_rec.date_action , '%Y-%m-%d'), datetime.min.time()).strftime('%Y%m%d %H:%M:%S')
             description = write_rec.description or ''
-            transition_id = self.log_activity_transitions(cr, uid, [], {'allday' :True, 'activity_id': write_rec.next_activity_id.id, 'lead_id': write_rec.id, 'start':  write_rec.date_action, 'start_date': write_rec.date_action, 'stop': write_rec.date_action, 'name': write_rec.title_action, 'description': description})
+            res = {'allday' :True, 'activity_id': write_rec.next_activity_id.id, 'lead_id': write_rec.id, 'start':  write_rec.date_action, 'start_date': write_rec.date_action, 'stop': write_rec.date_action, 'name': write_rec.title_action, 'description': description}
+            if write_rec.partner_id:
+                res.update({'partner_id': write_rec.partner_id.id})
+                onchange_val = transition_pool.onchange_partner_id(cr, uid, [], write_rec.partner_id.id)
+                res.update(onchange_val['value'])
+            transition_id = self.log_activity_transitions(cr, uid, [], res)
         return result
     
     def _lead_create_contact(self, cr, uid, lead, name, is_company, \
@@ -320,6 +355,18 @@ class crm_activity_transition(osv.osv):
         'activity_date': fields.date('Activity Date'),
         'title_action': fields.char('Activity Title'),
         'partner_ids': fields.many2many('res.partner', 'calendar_event_res_partner_rel2', string='Attendees'),
+        'partner_id': fields.many2one('res.partner', 'Partner'),
+        'partner_address_id': fields.many2one('res.partner', 'Partner Contact'),
+        'phone':fields.related('partner_id','phone',type="char", size=64, \
+                               string="Phone"),
+        'mobile':fields.related('partner_id','mobile',type="char", size=64,\
+                                string="Mobile"),
+        'email_from': fields.related('partner_id','email',type="char", \
+                                     size=64, string="Email"),
+        'description':fields.text('Description'),
+        'user_delegated_id':fields.many2one('res.users','Delegated By',\
+                                             readonly=True),
+        'delegated_on': fields.date('Delegate on', readonly=True),
         'state': fields.selection([('open', 'Confirmed'),
                                      ('draft', 'Unconfirmed'),
                                      ('cancel', 'Cancelled'),
@@ -327,9 +374,93 @@ class crm_activity_transition(osv.osv):
                                      size=16, readonly=True),
     }
     
+    
+    def default_get(self, cr, uid, fields, context=None):
+        """
+        calling default method (Default fields) for the object crm_activity_transition.
+        Returns Dictionary of default fields.
+        """
+        res = super(crm_activity_transition,self).default_get( cr, uid, fields, \
+                                                context=context)
+        
+        user_id = uid
+        if res and res.has_key('user_id') and res['user_id'] != False:
+            user_id = res['user_id']
+        user = self.pool.get('res.users').browse(cr, uid, user_id, context)
+        user_section = user.section_id and user.section_id.id or False
+        res['section_id'] = user_section
+        
+        default_partner_address_id = False
+        default_partner_id =  False
+        if context and 'default_opportunity_id' in context and \
+                                            context['default_opportunity_id']:
+            crm_pool = self.pool.get('crm.lead')
+            crm_Data = crm_pool.read(cr, uid , \
+                                     int(context['default_opportunity_id']),\
+                                     ['partner_id','partner_address_id'])
+            res['partner_id'] = crm_Data['partner_id'] and \
+                                crm_Data['partner_id'][0] or False
+            if 'partner_id' in crm_Data and crm_Data.get('partner_id'):
+                default_partner_address_id = False
+                default_partner_id =  res['partner_id']
+
+        if default_partner_address_id:
+            read_data = self.pool.get('res.partner').read(cr, uid,\
+                        default_partner_address_id)            
+            res['partner_id'] = read_data['partner_id'] and \
+                                read_data['partner_id'][0] or False
+            default_partner_id = res['partner_id']
+
+        if default_partner_id:
+            onchange_val = self.onchange_partner_id(cr, uid, [],\
+                                            default_partner_id)
+            res.update(onchange_val['value'])
+            addr = self.pool.get('res.partner').address_get(cr, uid,\
+                [int(default_partner_id)], ['contact','default'])
+            res['partner_address_id'] = addr['contact']            
+        return res
+    
+    
+    def onchange_partner_id(self, cr, uid, ids, partner_id, email=False):
+        res = {}
+        if not partner_id:
+            return {'value' : {'email_from':False, 'phone':False,\
+                                'mobile':False}}
+        res = self.pool.get('res.partner').read(cr, uid, partner_id, \
+                                            ['name','phone','mobile','email'])
+        return {'value' : {'email_from':res['email'], 'phone':res['phone'],\
+                                            'mobile':res['mobile']}}
+    
+    def onchange_user_id(self,cr,uid,ids,user_id,context={}):
+        if not user_id:
+            return {'value':{}}
+        else:
+            user_section = False
+            user_obj = self.pool.get('res.users').browse(cr, uid, user_id)
+            if user_id != uid :
+                    return {'value':{'user_delegated_id': uid, 'delegated_on': time.strftime('%Y-%m-%d')}}
+            else:
+                return {'value':{}}
+        return {}
+    
     def create(self, cr, uid, vals, context={}):
         context.update({'crm_activity':True})
+        if vals and 'user_id' in vals and vals['user_id'] != uid:
+            vals['user_delegated_id'] = uid
+            vals['delegated_on'] = time.strftime('%Y-%m-%d')
         return super(crm_activity_transition, self).create(cr, uid, vals, context=context)
+    
+    def write(self, cr, uid, ids, vals, context={}):
+        if not isinstance(ids, (list,tuple)):
+            ids = [ids]
+        old_datas = self.read(cr, uid, ids, ['user_id','start_datetime','stop_datetime'],\
+                    context=context)
+        for old_data in old_datas:
+            if not old_data['user_id'] or ('user_id' in vals and \
+                                    vals['user_id'] != old_data['user_id'][0]):
+                vals['user_delegated_id'] = uid
+                vals['delegated_on'] = time.strftime('%Y-%m-%d')
+        return super(crm_activity_transition, self).write(cr, uid, ids, vals, context=context)
     
     def do_delete(self, cr, uid, ids, context=None, *args):
         if context is None:

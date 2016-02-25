@@ -75,8 +75,6 @@
                         <span class="oe_read_only oe_form_field"
                               attrs="{'invisible': ['|', ('next_activity_id', '=', False), ('date_action', '=', False)]}">&#160;on&#160;</span>
                         <field name="date_action" attrs="{'invisible': [('next_activity_id', '=', False)]}" placeholder="Choose a date..."/>
-                        <span class="oe_read_only oe_form_field"
-                              attrs="{'invisible': ['|', ('next_activity_id', '=', False), ('title_action', '=', False)]}">:&#160;</span>
                     	<field name="title_action" placeholder="e.g. Discuss proposal"
                                attrs="{'invisible': [('next_activity_id', '=', False)]}"/>
                         <field name="show_action" invisible="1"/>
@@ -147,9 +145,7 @@
                         </span>
                         <span class="oe_read_only oe_form_field"
                               attrs="{'invisible': ['|', ('next_activity_id', '=', False), ('date_action', '=', False)]}">&#160;on&#160;</span>
-                        <field name="date_action" attrs="{'invisible': [('next_activity_id', '=', False)]}" placeholder="Choose a date..."/>
-                        <span class="oe_read_only oe_form_field"
-                              attrs="{'invisible': ['|', ('next_activity_id', '=', False), ('title_action', '=', False)]}">:&#160;</span>
+                        <field name="date_action" attrs="{'invisible': [('next_activity_id', '=', False)]}" placeholder="Choose a date..."/>                        
                     </div>
                     <div class="o_row">
                         <field name="title_action" placeholder="e.g. Discuss proposal"

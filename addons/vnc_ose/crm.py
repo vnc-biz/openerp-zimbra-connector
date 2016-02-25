@@ -127,7 +127,9 @@ class crm_lead(osv.osv):
                       'res_model': 'crm.activity.transition',
                       'type': 'ir.actions.act_window',
                       'res_id': transition_ids[0],
-                      'view_id': self.pool.get('ir.model.data').xmlid_to_res_id(cr, uid, 'crm_activity_transition_view_form')
+                      'view_id': self.pool.get('ir.model.data').xmlid_to_res_id(cr, uid, 'crm_activity_transition_view_form'),
+                      'target': 'new',
+                      'flags': {'form': {'action_buttons': True}}
                       }
         return True
         

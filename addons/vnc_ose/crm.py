@@ -105,7 +105,7 @@ class crm_lead(osv.osv):
                 raise osv.except_osv(_('Error!'), _('You have to define date and title of activity to add it in calendar'))        
             
             start = datetime.combine(datetime.strptime(lead.date_action , '%Y-%m-%d'), datetime.min.time()).strftime('%Y%m%d %H:%M:%S')
-            transition_id = self.log_activity_transitions(cr, uid, ids, {'allday' :True, 'activity_id': lead.next_activity_id.id, 'lead_id': lead.id, 'start':  lead.date_action, 'stop': lead.date_action, 'name': lead.title_action, 'description': lead.description})
+            transition_id = self.log_activity_transitions(cr, uid, ids, {'allday' :True, 'activity_id': lead.next_activity_id.id, 'lead_id': lead.id, 'start':  lead.date_action, 'stop': lead.date_action, 'name': lead.title_action})
             if transition_id:
                 self.write(cr, uid, lead.id, {'show_action': False})
         return True
@@ -229,9 +229,9 @@ class crm_lead(osv.osv):
             if not vals['date_action'] or not vals['title_action']:
                 raise osv.except_osv(_('Error!'), _('You have to define date and title of activity to add it in transition'))
             start = datetime.combine(datetime.strptime(vals['date_action'] , '%Y-%m-%d'), datetime.min.time()).strftime('%Y%m%d %H:%M:%S')
-            description = 'description' in vals and vals['description'] or ''
+            
             res = {'allday' :True, 'activity_id': vals['next_activity_id'], 'lead_id': lead_id, 'start':  vals['date_action'], \
-                                'start_date': vals['date_action'], 'stop': vals['date_action'], 'name': vals['title_action'], 'description': description, 'partner_id': vals['partner_id']}
+                                'start_date': vals['date_action'], 'stop': vals['date_action'], 'name': vals['title_action'], 'partner_id': vals['partner_id']}
             if vals['partner_id']:               
                 onchange_val = transition_pool.onchange_partner_id(cr, uid, [], vals['partner_id'])
                 res.update(onchange_val['value'])
@@ -254,8 +254,8 @@ class crm_lead(osv.osv):
             if not (write_rec.date_action or write_rec.title_action):
                 raise osv.except_osv(_('Error!'), _('You have to define date and title of activity to add it in transition'))
             start = datetime.combine(datetime.strptime(write_rec.date_action , '%Y-%m-%d'), datetime.min.time()).strftime('%Y%m%d %H:%M:%S')
-            description = write_rec.description or ''
-            res = {'allday' :True, 'activity_id': write_rec.next_activity_id.id, 'lead_id': write_rec.id, 'start':  write_rec.date_action, 'start_date': write_rec.date_action, 'stop': write_rec.date_action, 'name': write_rec.title_action, 'description': description}
+            
+            res = {'allday' :True, 'activity_id': write_rec.next_activity_id.id, 'lead_id': write_rec.id, 'start':  write_rec.date_action, 'start_date': write_rec.date_action, 'stop': write_rec.date_action, 'name': write_rec.title_action}
             if write_rec.partner_id:
                 res.update({'partner_id': write_rec.partner_id.id})
                 onchange_val = transition_pool.onchange_partner_id(cr, uid, [], write_rec.partner_id.id)

@@ -31,6 +31,7 @@
 	                        <field name="activity_1_id"/>
 	                        <field name="activity_2_id"/>
 	                        <field name="activity_3_id"/>
+	                        <field name="is_call" />
 	                    </group>
 	                </group>
 	            </form>
@@ -78,7 +79,6 @@
 		                        <field name="activity_id"/>
 		                        <field name="lead_id" readonly="context.get('from_lead', False)"/>
 		                        <field name="start_date"/>
-		                        <field name="is_call" readonly="1" />
 		                        <field name="state" invisible="1"/>
 		                    </group>
 		                </group>

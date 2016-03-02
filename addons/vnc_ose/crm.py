@@ -74,6 +74,7 @@ class crm_lead(osv.osv):
 
     def log_next_activity_done(self, cr, uid, ids, context=None, next_activity_name=False):
         to_clear_ids = []
+        crm_act_trans_obj = self.pool.get('crm.activity.transition')
         for lead in self.browse(cr, uid, ids, context=context):
             if not lead.next_activity_id:
                 continue
@@ -84,6 +85,14 @@ class crm_lead(osv.osv):
             body_html = self.pool['email.template'].render_template(cr, uid, body_html, 'crm.lead', lead.id, context=context)
             
             msg_id = lead.message_post(body_html, subtype_id=lead.next_activity_id.subtype_id.id)
+            act_transition_ids = crm_act_trans_obj.search(cr, uid, [('is_call','=',False),('lead_id','=',lead.id),('activity_id','=',lead.next_activity_id.id)], context=context)
+            for act_transition in crm_act_trans_obj.browse(cr, uid, act_transition_ids, context=context):
+                phone_vals = {'name' : act_transition.name, 'opportunity_id' : act_transition.lead_id.id, 'partner_id' : act_transition.partner_id and act_transition.partner_id.id or False,
+                    'partner_phone' : act_transition.phone or '', 'date' : lead.date_action or False, 'date_start' : lead.date_action or False, 'user_id' : act_transition.user_id and act_transition.user_id.id or False,
+                    'priority' : str(3), 'partner_mobile' : act_transition.mobile or '', 'categ_id' : self.pool.get('ir.model.data').xmlid_to_res_id(cr, uid, 'crm.categ_phone1')}
+                
+                self.pool.get('crm.phonecall').create(cr, uid, phone_vals, context=context)
+                crm_act_trans_obj.write(cr, uid, [act_transition.id], {'is_call' : True}, context=context)
             to_clear_ids.append(lead.id)
             self.write(cr, uid, [lead.id], {'last_activity_id': lead.next_activity_id.id, 'show_action': False}, context=context)
             #self.log_activity_transitions(cr, uid, ids, {'attendee_ids': [], 'activity_id': lead.next_activity_id.id, 'lead_id': lead.id, 'start': lead.date_action, 'stop': lead.date_action, 'start_date': lead.date_action, 'name': lead.title_action})
@@ -379,6 +388,7 @@ class crm_activity_transition(osv.osv):
                                      ('cancel', 'Cancelled'),
                                      ('done', 'Done')], 'State', \
                                      size=16, readonly=True),
+        'is_call' : fields.boolean('Call?')
     }
     
     

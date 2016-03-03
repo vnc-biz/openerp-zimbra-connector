@@ -33,6 +33,7 @@ class CrmActivity(models.Model):
     activity_2_id = fields.Many2one('crm.activity', string="Next Activity 2")
     activity_3_id = fields.Many2one('crm.activity', string="Next Activity 3")
     is_call = fields.Boolean('Call?')
+    type = fields.Selection([('call','Call'),('meeting','Meeting'),('email','Email'),('task','Task')], 'Type')
 
     @api.model
     def create(self, values):

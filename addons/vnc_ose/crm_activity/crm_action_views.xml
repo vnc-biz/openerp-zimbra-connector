@@ -79,9 +79,23 @@
 		                    <group>
 		                        <field name="activity_id"/>
 		                        <field name="lead_id" readonly="context.get('from_lead', False)"/>
-		                        <field name="start_date"/>
 		                        <field name="state" invisible="1"/>
 		                    </group>
+		                    <group>
+                                    <field name="start" attrs="{'invisible': True}"/>
+                                    <field name="stop" attrs="{'invisible': True}"/>
+
+                                    <field name="start_date" string="Starting at" on_change="onchange_dates('start', start_date, stop_date, allday, True)" attrs="{'invisible': [('allday','=',False)]}"/>
+                                    <field name="stop_date" string="Ending at" on_change="onchange_dates('stop', start_date, stop_date, allday, True)" attrs="{'invisible': [('allday','=',False)]}"/>
+
+                                    <field name="start_datetime" string="Starting at" on_change="onchange_dates('start', start_datetime, stop_datetime, allday, False)" attrs="{'invisible': [('allday','=',True)]}"/>
+                                    <field name="stop_datetime" string="Ending at" on_change="onchange_dates('stop', start_datetime, stop_datetime, allday, False)" attrs="{'invisible': [('allday','=',True)]}"/>
+                                    <label for="allday"/>
+                                    <div>
+                                        <field name="allday"  class="oe_inline" on_change="onchange_allday(start, stop, start_date, stop_date, start_datetime, stop_datetime, allday)"/>
+                                    </div>
+                                    <field name="duration" widget="float_time" class="oe_inline" attrs="{ 'invisible': True }"/>
+                                </group>
 		                </group>
 		                <notebook>
 		                	<page string="Additional Info">

@@ -73,8 +73,10 @@
                             </button>
                         </span>
                         <span class="oe_read_only oe_form_field"
-                              attrs="{'invisible': ['|', ('next_activity_id', '=', False), ('date_action', '=', False)]}">&#160;on&#160;</span>
-                        <field name="date_action" attrs="{'invisible': [('next_activity_id', '=', False)]}" placeholder="Choose a date..."/>
+                              attrs="{'invisible': ['|', ('next_activity_id', '=', False), '|', ('date_action', '=', False), ('datetime_action', '=', False)]}">&#160;on&#160;</span>
+                        <field name="allday" invisible="1"/>
+                        <field name="date_action" attrs="{'invisible': ['|', ('next_activity_id', '=', False), ('allday', '=', False)]}" placeholder="Choose a date..."/>                        
+                        <field name="datetime_action" attrs="{'invisible': ['|', ('next_activity_id', '=', False), ('allday', '=', True)]}" placeholder="Choose a date..."/>
                     	<field name="title_action" placeholder="e.g. Discuss proposal"
                                attrs="{'invisible': [('next_activity_id', '=', False)]}"/>
                         <field name="show_action" invisible="1"/>
@@ -97,6 +99,7 @@
 					                <field name="activity_id"/>
 					                <field name="lead_id"/>
 					                <field name="start_date"/>
+					                <field name="start_datetime"/>
 					                <field name="state" invisible="1"/>
 					                <button name="do_delete" string="Delete" type="object" icon="gtk-cancel"/>
 					            </tree>					            			
@@ -144,8 +147,10 @@
                             </button>
                         </span>
                         <span class="oe_read_only oe_form_field"
-                              attrs="{'invisible': ['|', ('next_activity_id', '=', False), ('date_action', '=', False)]}">&#160;on&#160;</span>
-                        <field name="date_action" attrs="{'invisible': [('next_activity_id', '=', False)]}" placeholder="Choose a date..."/>                        
+                              attrs="{'invisible': ['|', ('next_activity_id', '=', False), '|', ('date_action', '=', False), ('datetime_action', '=', False)]}">&#160;on&#160;</span>
+                        <field name="allday" invisible="1"/>
+                        <field name="date_action" attrs="{'invisible': ['|', ('next_activity_id', '=', False), ('allday', '=', False)]}" placeholder="Choose a date..."/>                        
+                        <field name="datetime_action" attrs="{'invisible': ['|', ('next_activity_id', '=', False), ('allday', '=', True)]}" placeholder="Choose a date..."/>                        
                     </div>
                     <div class="o_row">
                         <field name="title_action" placeholder="e.g. Discuss proposal"
@@ -170,6 +175,7 @@
 					                <field name="activity_id"/>
 					                <field name="lead_id"/>
 					                <field name="start_date"/>
+					                <field name="start_datetime"/>
 					                <field name="state" invisible="1"/>
 					                <button name="do_delete" string="Delete" type="object" icon="gtk-cancel"/>
 					            </tree>					           				

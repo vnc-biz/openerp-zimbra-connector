@@ -20,10 +20,16 @@ class crm_lead(osv.osv):
         'next_activity_1': fields.related("last_activity_id", "activity_1_id", "name", type="char", string="Next Activity 1"),
         'next_activity_2': fields.related("last_activity_id", "activity_2_id", "name", type="char", string="Next Activity 2"),
         'next_activity_3': fields.related("last_activity_id", "activity_3_id", "name", type="char", string="Next Activity 3"),
-        'date_action': fields.date('Next Activity Date', select=True),
+        'date_action': fields.date('Next Activity Start Date', select=True),
+        'datetime_action': fields.datetime('Next Activity Start Date time', select=True),
         'title_action': fields.char('Next Activity Summary'),
         'show_action': fields.boolean('Show action', readonly=False),
+        'allday': fields.boolean('Allday'),
         'activity_transition_ids': fields.one2many('crm.activity.transition', 'lead_id', 'Activity Transitions')
+    }
+    
+    _defaults = {
+        'allday': True
     }
 
     def log_activity_transitions(self, cr, uid, ids, vals, context=None):
@@ -68,7 +74,8 @@ class crm_lead(osv.osv):
                     'next_activity_id': next_activity.id,
                     'date_action': date_action,
                     'title_action': next_activity.description,
-                    'show_action': show_action
+                    'show_action': show_action,
+                    'allday': True
                 })
         return True
 
@@ -103,6 +110,7 @@ class crm_lead(osv.osv):
         return self.write(cr, uid, ids,  {
             'next_activity_id': False,
             'date_action': False,
+            'datetime_action': False,
             'title_action': False,
         }, context=context)
 
@@ -127,6 +135,8 @@ class crm_lead(osv.osv):
                 domain.append(('activity_id', '=', lead.next_activity_id.id))
             if lead.date_action:
                 domain.append(('start_date', '=', lead.date_action))
+            if lead.datetime_action:
+                domain.append(('start_datetime', '=', lead.datetime_action))
             domain.append(('lead_id', '=', lead.id))
             transition_ids = self.pool.get('crm.activity.transition').search(cr, uid, domain)
             context.update({'from_lead': 'yes'})
@@ -153,6 +163,7 @@ class crm_lead(osv.osv):
                 'next_action3': False,
                 'title_action': False,
                 'date_action': False,
+                'datetime_action': False
             }}
         activity = self.pool['crm.activity'].browse(cr, uid, next_activity_id, context=context)
         date_action = False
@@ -160,7 +171,7 @@ class crm_lead(osv.osv):
             date_action = (datetime.now() + timedelta(days=activity.days)).strftime(tools.DEFAULT_SERVER_DATETIME_FORMAT)
         lead_id = ids and ids[0] or None
         if lead_id:
-            transition_id = self.pool.get('crm.activity.transition').search(cr, uid, [('activity_id', '=', next_activity_id), ('start_date', '=', date_action), ('lead_id', '=', lead_id)])
+            transition_id = self.pool.get('crm.activity.transition').search(cr, uid, [('activity_id', '=', next_activity_id), ('lead_id', '=', lead_id), ('start_date', '=', date_action)])
             if transition_id:
                 show_action = False
             else:           
@@ -233,12 +244,12 @@ class crm_lead(osv.osv):
         transition_pool = self.pool['crm.activity.transition']
         lead_id = super(crm_lead, self).create(cr, uid, vals, context)
         if 'next_activity_id' in vals and vals['next_activity_id'] :
-            if not vals['date_action']:
+            if not (vals['date_action'] or vals['datetime_action']):
                 raise osv.except_osv(_('Error!'), _('You have to define date of activity to add it in transition'))
            # start = datetime.combine(datetime.strptime(vals['date_action'] , '%Y-%m-%d'), datetime.min.time()).strftime('%Y%m%d %H:%M:%S')
             activity_name = self.pool.get('crm.activity').read(cr, uid, vals['next_activity_id'], ['name'])
-            res = {'allday' :True, 'activity_id': vals['next_activity_id'], 'lead_id': lead_id, 'start':  vals['date_action'], \
-                                'start_date': vals['date_action'], 'stop': vals['date_action'], 'name': vals['title_action'] or activity_name['name']}
+            res = {'allday' :True, 'activity_id': vals['next_activity_id'], 'lead_id': lead_id, 'start_datetime':  vals['datetime_action'], \
+                                'start_date': vals['date_action'], 'stop_date': vals['date_action'], 'start': vals['date_action'], 'stop': vals['date_action'], 'name': vals['title_action'] or activity_name['name']}
             if 'partner_id' in vals and vals['partner_id']:
                 res.update({'partner_id': vals['partner_id']})           
                 onchange_val = transition_pool.onchange_partner_id(cr, uid, [], vals['partner_id'])
@@ -255,15 +266,16 @@ class crm_lead(osv.osv):
         transition_pool = self.pool['crm.activity.transition']
         vals['show_action'] = False
         result = super(crm_lead, self).write(cr, uid, ids, vals, context)
-        if not ('convert_from_lead' in context and context['convert_from_lead'] or 'from_lead' in context and context['from_lead']) and (('next_activity_id' in vals and vals['next_activity_id']) or ('date_action' in vals and vals['date_action']) or ('title_action' in vals and vals['title_action'])) :
+        if not ('convert_from_lead' in context and context['convert_from_lead'] or 'from_lead' in context and context['from_lead']) and (('next_activity_id' in vals and vals['next_activity_id']) or ('date_action' in vals and vals['date_action']) or ('datetime_action' in vals and vals['datetime_action']) or ('title_action' in vals and vals['title_action'])) :
             write_rec = self.browse(cr, uid, ids[0])
             if not write_rec.next_activity_id:
                 return True
-            if not write_rec.date_action:
+            if not (write_rec.date_action or write_rec.datetime_action):
                 raise osv.except_osv(_('Error!'), _('You have to define date of activity to add it in transition'))
         #    start = datetime.combine(datetime.strptime(write_rec.date_action , '%Y-%m-%d'), datetime.min.time()).strftime('%Y%m%d %H:%M:%S')
-            
-            res = {'allday' :True, 'activity_id': write_rec.next_activity_id.id, 'lead_id': write_rec.id, 'start':  write_rec.date_action, 'start_date': write_rec.date_action, 'stop': write_rec.date_action, 'name': write_rec.title_action or write_rec.next_activity_id.name}
+            start = write_rec.date_action or write_rec.datetime_action
+            stop = write_rec.date_action or write_rec.datetime_action
+            res = {'allday' :write_rec.allday, 'activity_id': write_rec.next_activity_id.id, 'lead_id': write_rec.id, 'start_datetime':  write_rec.datetime_action, 'start_date': write_rec.date_action, 'stop_date': write_rec.date_action, 'start':start, 'stop': stop, 'name': write_rec.title_action or write_rec.next_activity_id.name}
             if write_rec.partner_id:
                 res.update({'partner_id': write_rec.partner_id.id})
                 onchange_val = transition_pool.onchange_partner_id(cr, uid, [], write_rec.partner_id.id)
@@ -476,13 +488,21 @@ class crm_activity_transition(osv.osv):
                 vals['delegated_on'] = time.strftime('%Y-%m-%d')
                 
             if 'from_lead' in context and context['from_lead']=='yes' and old_data['lead_id'] :
-                lead_vals={}
+                lead_vals={}                
                 if 'name' in vals:
                     lead_vals['title_action']=vals['name']
                 if 'activity_id' in vals:
                     lead_vals['next_activity_id']=vals['activity_id']
                 if 'start_date' in vals:
                     lead_vals['date_action']=vals['start_date']
+                if 'start_datetime' in vals:
+                    lead_vals['datetime_action'] =vals['start_datetime']
+                if 'allday' in vals:
+                    lead_vals['allday']=vals['allday']
+                    if vals['allday']==False:
+                        lead_vals['date_action']=None
+                    else:
+                        lead_vals['datetime_action'] = None
                 self.pool.get('crm.lead').write(cr, uid, [old_data['lead_id'][0]], lead_vals, context=context)    
         return super(crm_activity_transition, self).write(cr, uid, ids, vals, context=context)
     

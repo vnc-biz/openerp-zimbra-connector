@@ -86,7 +86,7 @@ class crm_lead(osv.osv):
             msg_id = lead.message_post(body_html, subtype_id=lead.next_activity_id.subtype_id.id)
             if lead.next_activity_id and lead.next_activity_id.is_call:
                 phone_vals = {'name' : lead.next_activity_id.name, 'opportunity_id' : lead.id, 'partner_id' : lead.partner_id and lead.partner_id.id or False,
-                              'partner_phone' : lead.phone or '', 'date' : lead.date_action or False, 'date_start' : lead.date_action or False, 
+                              'partner_phone' : lead.phone or '', 'date' : time.strftime('%Y-%m-%d %H:%M:%S'), 'date_start' : time.strftime('%Y-%m-%d %H:%M:%S'), 
                               'user_id' : lead.user_id and lead.user_id.id or False, 'priority' : str(3), 'partner_mobile' : lead.mobile or '', 
                               'categ_id' : self.pool.get('ir.model.data').xmlid_to_res_id(cr, uid, 'crm.categ_phone1')
                 }

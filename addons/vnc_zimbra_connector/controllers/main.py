@@ -301,8 +301,10 @@ class ZimbraVNCController(http.Controller):
                 if data['allday']:
                     event.add('CREATED', date.today())
                     if data['start_date']:
+                        data['start_date'] = data['start_date'].split(" ")[0]                        
                         event.add('DTSTART', DT.datetime.combine(DT.datetime.strptime(data['start_date'], '%Y-%m-%d'), DT.time.min))
                     if data['stop_date']:
+                        data['stop_date'] = data['stop_date'].split(" ")[0]
                         event.add('DTEND', DT.datetime.combine(DT.datetime.strptime(data['stop_date'], '%Y-%m-%d'), DT.time.max))
                     event.add('X-MICROSOFT-CDO-ALLDAYEVENT', 'TRUE')
                 else:

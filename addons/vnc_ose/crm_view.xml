@@ -10,7 +10,7 @@
                     <field name="contact_name" placeholder="First Name" class="oe_inline"/><field name="contact_last_name" placeholder="Last Name" class="oe_inline"/>
                 </xpath>
                 <xpath expr="//field[@name='description']" position="replace">
-                    <field name="description" widget="html"/>
+                    <field name="description" widget="html" nolabel="1"/>
                 </xpath>
             </field>
         </record>

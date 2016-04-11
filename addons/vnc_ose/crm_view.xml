@@ -53,6 +53,9 @@
             <field name="priority">110</field>
             <field name="inherit_id" ref="crm.crm_case_form_view_leads" />
             <field name="arch" type="xml">
+            	<xpath expr="//field[@name='description']" position="replace">
+                    <field name="description" widget="html"/>
+                </xpath>
             	<xpath expr="//field[@name='fax']" position="after">
             		<field name="last_activity_id" invisible="1"/>
             		<label for="next_activity_id"/>            		

@@ -10,6 +10,7 @@ from datetime import date
 import hashlib
 import pytz
 import urllib2
+import time
 
 def webservice(f):
     @functools.wraps(f)
@@ -107,6 +108,56 @@ class ZimbraVNCController(http.Controller):
                          'birthday_calendar'+'.ics')]
         return request.make_response(cal_data, headers=headers)
     
+    
+    @http.route(['/leavecalendar','/leavecalendar/<string:dbname>/<string:company_code>/','/leavecalendar/<string:db_name>/<string:company_code>/<string:employee_function>'], type='http', auth='none')
+    def zimbra_sync_leave_calendar(self, dbname=None, company_code=None, employee_function=None, calendar_name=None):
+        
+        environ = request.httprequest.environ
+        auth = environ.get('HTTP_AUTHORIZATION')
+        if auth:
+            scheme, data = auth.split(None, 1)
+            assert scheme.lower() == 'basic'
+            username, password = data.decode('base64').split(':', 1)            
+            username = urllib2.unquote(username)
+            password = urllib2.unquote(password)
+            query_str = environ.get('QUERY_STRING')
+            para_final = query_str.split('=')
+            uid = request.session.authenticate(dbname, username, password)
+            
+        vals={}
+        vals['company_code']= company_code or ''
+        vals['employee_function'] = employee_function or ''
+        vals['is_leave'] = True
+#         if post.get('company_code'):
+#             vals['company_code'] = post.get('company_code')
+#         if post.get('calendar_name'):
+#             calendar_name = post.get('calendar_name')
+#         else:
+#             calendar_name = 'leave_calendar'
+#         if post.get('employee_function'):
+#             vals['employee_function'] = post.get('employee_function')
+#         if post.get('is_leave'):
+#             vals['is_leave'] = post.get('is_leave')
+#         else:
+#             vals['is_leave'] = True
+#         if post.get('is_allocation'):
+#             vals['is_allocation'] = post.get('is_allocation')
+                
+        if not request.session.uid:
+            url = request.httprequest.url_root + "web/login" + "?redirect=" + "/leavecalendar"
+            redirect = werkzeug.utils.redirect(url, 303)
+            redirect.autocorrect_location_header = True
+            return redirect  
+        cal_data = self.make_service_call('leavecalendar', vals)
+        calendar_name = calendar_name or 'leavecalendar'
+        headers = [('cache-control', 'no-cache'), \
+                        ('Pragma', 'no-cache'), \
+                        ('Content-Type', 'text/calendar'), \
+                        ('Content-length', len(cal_data)), \
+                        ('Content-Disposition', 'attachment; filename='+\
+                         calendar_name+'.ics')]
+        return request.make_response(cal_data, headers=headers)
+    
     def get_lead_name(self, lead_id):
         lead_osv = request.registry.get('crm.lead')
         lead_data = lead_osv.read(request.cr, SUPERUSER_ID, lead_id, ['name', 'partner_id', 'contact_name'])        
@@ -119,12 +170,96 @@ class ZimbraVNCController(http.Controller):
             name = lead_data['name']
         
         return name
+
+
+    def get_employee_data(self, employee_id, holiday_status_id):
+        employee_osv = request.registry.get('hr.employee')
+        employee_data = employee_osv.read(request.cr, SUPERUSER_ID, employee_id, ['name', 'job_id', 'first_name', 'last_name'])        
+        name= ''
+        if employee_data :
+            employee_data =  employee_data[0]
+            if employee_data['name']:
+                name = employee_data['name']
+            if holiday_status_id and holiday_status_id[1]:
+                name = name + ' - ' + '(' + holiday_status_id[1] + ')'
+            if employee_data['job_id']:
+                name = name + ' - ' + employee_data['job_id'][1]       
+        
+        return name
+
     
-    def make_service_call(self, option):
+    def make_service_call(self, option, vals=None):
         def uid_generat(data):# UID generat
             sha_obj = hashlib.sha1(data)
             return sha_obj.hexdigest()
         
+        if vals is None:
+            vals={}        
+        if option == 'leavecalendar':
+            employee_osv = request.registry.get('hr.employee')
+            leave_osv = request.registry.get('hr.holidays')   
+            domain = []         
+            if vals.get('company_code'):
+                domain += [('employee_id.company_id.code', '=', vals.get('company_code'))]
+            if vals.get('is_leave') and vals.get('is_allocation'):
+                domain += [('type', 'in', ('add', 'remove'))]
+            else:
+                if vals.get('is_leave'):
+                    domain += [('type', '=', 'remove')]
+                elif vals.get('is_allocation'):
+                    domain += [('type', '=', 'add')]
+            start_date = time.strftime('%Y-01-01 00:00:00')
+            end_date = time.strftime('%Y-12-31 23:59:59')
+            domain+= [('date_from', '>=', start_date), ('date_from', '<=', end_date), ('date_to', '>=', start_date), ('date_to', '<=', end_date), ('employee_id.active', '=', True)]
+            leave_ids = leave_osv.search(request.cr, SUPERUSER_ID, domain)
+            leave_data = leave_osv.read(request.cr, SUPERUSER_ID, leave_ids, ['id', 'employee_id', 'date_from', 'date_to', 'write_date', 'holiday_status_id', 'state'])
+
+            def ics_datetime(idate):
+                if idate:
+                    #returns the datetime as UTC, because it is stored as it in the database
+                    idate = idate.split('.', 1)[0]
+                    return DT.datetime.strptime(idate,\
+                         '%Y-%m-%d %H:%M:%S').replace(tzinfo=pytz.timezone('UTC'))
+                return False
+    
+            cal = Calendar()
+            cal.add('PRODID', 'Zimbra-Calendar-Provider')
+            cal.add('VERSION', '2.0')
+            cal.add('METHOD', 'PUBLISH')
+    
+            for data in leave_data:
+                name =""
+                if 'employee_id' in data and data['employee_id']:
+                    name = self.get_employee_data(data['employee_id'][0], data['holiday_status_id'])
+                
+                event = Event()
+                event.add('summary', name)
+                event.add('description', '')
+                if data['date_from']:
+                    event.add('DTSTART', ics_datetime(data['date_from']))
+                if data['date_to']:
+                    event.add('DTEND', ics_datetime(data['date_to']))
+                if data['write_date']:
+                    event.add('DTSTAMP', DT.datetime.strptime(data['write_date'],\
+                                                              '%Y-%m-%d %H:%M:%S'))
+                    event.add('LAST-MODIFIED', \
+                    DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S'))
+                event['uid'] = uid_generat('employeeLeave'+str(data['id']))    
+               
+    
+#                 if data['state'] == 'done':
+#                     event.add('status', 'COMPLETED')
+#                     event.add('PERCENT-COMPLETE', 100)
+#                 elif data['state'] == 'cancel':
+#                     event.add('status', 'DEFERRED')
+#                 elif data['state'] == 'open':
+#                     event.add('status', 'IN-PROCESS')
+#                 else:
+#                     event.add('status', 'NEEDS-ACTION')
+#                     event.add('PERCENT-COMPLETE', 0) 
+                cal.add_component(event)
+            return cal.to_ical()
+            
         if option == 'birthdaycalendar':
             emp_osv = request.registry.get('hr.employee')
             emp_ids = emp_osv.search(request.cr, SUPERUSER_ID, [])

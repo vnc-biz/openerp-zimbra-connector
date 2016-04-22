@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+	<data>
+		 <!-- res company form inherited for code field -->
+         <record id="view_company_form_vnc_connector" model="ir.ui.view">
+		     <field name="name">vnc.res.company.form.connector</field>
+                 <field name="model">res.company</field>
+                 <field name="inherit_id" ref="base.view_company_form" />
+                 <field name="arch" type="xml">
+                     <xpath expr="//field[@name='parent_id']" position="after">                                        
+                          <field name="code" />
+                     </xpath>
+                 </field>
+         </record>
+	</data>
+</openerp>

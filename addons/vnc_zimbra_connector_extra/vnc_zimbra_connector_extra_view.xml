@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+	<data>
+		 <!-- res company form inherited for code field -->
+         <record id="view_company_form_vnc_connector" model="ir.ui.view">
+		     <field name="name">vnc.res.company.form.connector</field>
+                 <field name="model">res.company</field>
+                 <field name="inherit_id" ref="base.view_company_form" />
+                 <field name="arch" type="xml">
+                     <xpath expr="//field[@name='parent_id']" position="after">                                        
+                          <field name="code" />
+                     </xpath>
+                 </field>
+         </record>
+         
+         <record id="view_employee_form_connector_inherit" model="ir.ui.view">
+            <field name="name">hr.employee.connector.form.inherit</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='birthday']" position="after">
+                	<field name="started_career_vnc_on" string="Started Career Here On"/>
+                </xpath>
+            </field>
+        </record>
+        
+	</data>
+</openerp>

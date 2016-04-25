@@ -3,7 +3,7 @@
     "version" : "1.1.0",
     "author" : "VNC",
     "website" : "http://www.vnc.biz/",
-    "depends" : ["base", "crm", "vnc_ose", "project", "hr"],
+    "depends" : ["base", "crm", "vnc_ose", "project", "hr", "hr_holidays"],
     "category" : "Generic Modules/Zimbra interface",
     "description": """
       This module is required for the zimbra openerp plug-in to work

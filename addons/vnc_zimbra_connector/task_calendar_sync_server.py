@@ -10,10 +10,13 @@ import ast
 from icalendar import Calendar, Event, Todo
 import pytz
 import threading
+import time
+import re
+import urllib
 
 def wsgi_xmlrpc(environ, start_response):
     """ WSGI handler to return the versions."""
-    if environ.get('PATH_INFO') in ['/task', '/calendar', '/birthdaycalendar']:
+    if environ.get('PATH_INFO') in ['/task', '/calendar', '/birthdaycalendar' , '/leavecalendar']:
         if not environ.get('HTTP_AUTHORIZATION'):
             start_response("401 Authorization required",
                            [('WWW-Authenticate', 'Basic realm="OpenERP"'),
@@ -46,7 +49,15 @@ def wsgi_xmlrpc(environ, start_response):
                 elif environ.get('PATH_INFO') == '/birthdaycalendar':
                     cal_data = make_service_call(environ.get('SERVER_NAME'), \
                                 environ.get('SERVER_PORT'), username, \
-                                password, para_final[1], 'birthdaycalendar')                    
+                                password, para_final[1], 'birthdaycalendar')
+                elif environ.get('PATH_INFO') == '/leavecalendar':                    
+                    para_final = query_str.split('&')
+                    dbname = para_final[0].split('=')
+                    para_final.pop(0)
+                    
+                    cal_data = make_service_call(environ.get('SERVER_NAME'), \
+                                environ.get('SERVER_PORT'), username, \
+                                password, dbname[1], 'leavecalendar',para_final)                    
                 else:
                     body = 'Invalid URL'
                     headers = [
@@ -190,6 +201,13 @@ def application(environ, start_response):
                     cal_data = make_service_call(environ.get('SERVER_NAME'), \
                                 environ.get('SERVER_PORT'), username, \
                                 password, para_final[1], 'birthdaycalendar')
+                elif environ.get('PATH_INFO') == '/leavecalendar':
+                    para_final = query_str.split('&')
+                    dbname = para_final[0].split('=')
+                    para_final.pop(0)                    
+                    cal_data = make_service_call(environ.get('SERVER_NAME'), \
+                                environ.get('SERVER_PORT'), username, \
+                                password, dbname[1], 'leavecalendar')
                 else:
                     body = 'Invalid URL'
                     headers = [
@@ -222,13 +240,96 @@ def application(environ, start_response):
     else:
         return wsgi_server.application_unproxied(environ, start_response)
 
-def make_service_call(host, port, username, pwd, dbname, option):
+def make_service_call(host, port, username, pwd, dbname, option, vals=None):
     def uid_generat(data):# UID generat
         sha_obj = hashlib.sha1(data)
         return sha_obj.hexdigest()
+    
     sock_common = xmlrpclib.ServerProxy('http://'+host+':'+port+'/xmlrpc/common')
     uid = sock_common.login(dbname, username, pwd)
     sock = xmlrpclib.ServerProxy('http://'+host+':'+port+'/xmlrpc/object')
+    if option == 'leavecalendar':
+        domain = []        
+        
+        for val in vals:
+            param_vals = val.split("=")
+            if param_vals[0]=='company_code' and param_vals[1]:
+                code = urllib.unquote_plus(urllib.unquote_plus(param_vals[1]))
+                domain += [('employee_id.company_id.code', '=',code)]
+            if param_vals[0]=='employee_function' and param_vals[1]:
+                emp_func = urllib.unquote_plus(urllib.unquote_plus(param_vals[1]))
+                domain += [('employee_id.job_id.name', '=', emp_func)]
+#             if my_vals[0] == 'is_leave' and vals.get('is_allocation'):
+#                 domain += [('type', 'in', ('add', 'remove'))]
+#             else:
+#                 if vals.get('is_leave'):
+#                     domain += [('type', '=', 'remove')]
+#                 elif vals.get('is_allocation'):
+#                     domain += [('type', '=', 'add')]
+        domain += [('type', '=', 'remove')]
+            
+        start_date = time.strftime('%Y-01-01 00:00:00')
+        end_date = time.strftime('%Y-12-31 23:59:59')
+        domain+= [('date_from', '>=', start_date), ('date_from', '<=', end_date), ('date_to', '>=', start_date), ('date_to', '<=', end_date), ('employee_id.active', '=', True)]
+        leave_ids = sock.execute(dbname, uid, pwd, 'hr.holidays', 'search', domain)  
+        leave_data = sock.execute(dbname, uid, pwd, 'hr.holidays', 'read', leave_ids, ['id', 'employee_id', 'date_from', 'date_to', 'write_date', 'holiday_status_id', 'state'])
+
+        def ics_datetime(idate):
+            if idate:
+                #returns the datetime as UTC, because it is stored as it in the database
+                idate = idate.split('.', 1)[0]
+                return DT.datetime.strptime(idate,\
+                     '%Y-%m-%d %H:%M:%S').replace(tzinfo=pytz.timezone('UTC'))
+            return False
+
+        cal = Calendar()
+        cal.add('PRODID', 'Zimbra-Calendar-Provider')
+        cal.add('VERSION', '2.0')
+        cal.add('METHOD', 'PUBLISH')
+
+        for data in leave_data:
+            name =""
+            if 'employee_id' in data and data['employee_id']:                
+                employee_data = sock.execute(dbname, uid, pwd, 'hr.employee', 'read', data['employee_id'][0],\
+                    ['name', 'job_id', 'first_name', 'last_name'])    
+                name= ''
+                if employee_data :
+                    
+                    if employee_data['name']:
+                        name = employee_data['name']
+                    if  data['holiday_status_id'] and  data['holiday_status_id'][1]:
+                        name = name + ' - ' + '(' +  data['holiday_status_id'][1] + ')'
+                    if employee_data['job_id']:
+                        name = name + ' - ' + employee_data['job_id'][1]      
+            
+            event = Event()
+            event.add('summary', name)
+            event.add('description', '')
+            if data['date_from']:
+                event.add('DTSTART', ics_datetime(data['date_from']))
+            if data['date_to']:
+                event.add('DTEND', ics_datetime(data['date_to']))
+            if 'write_date' in data and data['write_date']:
+                event.add('DTSTAMP', DT.datetime.strptime(data['write_date'],\
+                                                          '%Y-%m-%d %H:%M:%S'))
+                event.add('LAST-MODIFIED', \
+                DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S'))
+            event['uid'] = uid_generat('employeeLeave'+str(data['id']))    
+           
+
+#                 if data['state'] == 'done':
+#                     event.add('status', 'COMPLETED')
+#                     event.add('PERCENT-COMPLETE', 100)
+#                 elif data['state'] == 'cancel':
+#                     event.add('status', 'DEFERRED')
+#                 elif data['state'] == 'open':
+#                     event.add('status', 'IN-PROCESS')
+#                 else:
+#                     event.add('status', 'NEEDS-ACTION')
+#                     event.add('PERCENT-COMPLETE', 0) 
+            cal.add_component(event)
+        return cal.to_ical()
+    
     if option == 'birthdaycalendar':
         emp_ids =  sock.execute(dbname, uid, pwd, 'hr.employee', 'search',  [])
         emp_data = sock.execute(dbname, uid, pwd, 'hr.employee', 'read', emp_ids,\
@@ -286,7 +387,7 @@ def make_service_call(host, port, username, pwd, dbname, option):
 #                         event.add('X-MICROSOFT-CDO-INTENDEDSTATUS', data['show_as'])
                 event.add('UID', uid_generat('crmAnniversaryCalendar'+str(data['id'])))
                 event.add('RRULE', {'FREQ':'YEARLY', 'INTERVAL': 1}) 
-                name = data['first_name'] + " " + data['last_name']+"'s Anniversary at VNC"
+                name = data['first_name'] + " " + data['last_name']+"'s Anniversary at This Company"
                 event.add('SUMMARY', name)
 #                     if data['description']:
 #                         event.add('DESCRIPTION', data['description'])

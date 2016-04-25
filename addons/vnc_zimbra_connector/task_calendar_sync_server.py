@@ -13,7 +13,7 @@ import threading
 
 def wsgi_xmlrpc(environ, start_response):
     """ WSGI handler to return the versions."""
-    if environ.get('PATH_INFO') in ['/task', '/calendar']:
+    if environ.get('PATH_INFO') in ['/task', '/calendar', '/birthdaycalendar']:
         if not environ.get('HTTP_AUTHORIZATION'):
             start_response("401 Authorization required",
                            [('WWW-Authenticate', 'Basic realm="OpenERP"'),
@@ -43,6 +43,10 @@ def wsgi_xmlrpc(environ, start_response):
                     cal_data = make_service_call(environ.get('SERVER_NAME'), \
                                 environ.get('SERVER_PORT'), username, \
                                 password, para_final[1], 'calendar')
+                elif environ.get('PATH_INFO') == '/birthdaycalendar':
+                    cal_data = make_service_call(environ.get('SERVER_NAME'), \
+                                environ.get('SERVER_PORT'), username, \
+                                password, para_final[1], 'birthdaycalendar')                    
                 else:
                     body = 'Invalid URL'
                     headers = [
@@ -182,6 +186,10 @@ def application(environ, start_response):
                     cal_data = make_service_call(environ.get('SERVER_NAME'), \
                                 environ.get('SERVER_PORT'), username, \
                                 password, para_final[1], 'calendar')
+                elif environ.get('PATH_INFO') == '/birthdaycalendar':
+                    cal_data = make_service_call(environ.get('SERVER_NAME'), \
+                                environ.get('SERVER_PORT'), username, \
+                                password, para_final[1], 'birthdaycalendar')
                 else:
                     body = 'Invalid URL'
                     headers = [
@@ -221,6 +229,72 @@ def make_service_call(host, port, username, pwd, dbname, option):
     sock_common = xmlrpclib.ServerProxy('http://'+host+':'+port+'/xmlrpc/common')
     uid = sock_common.login(dbname, username, pwd)
     sock = xmlrpclib.ServerProxy('http://'+host+':'+port+'/xmlrpc/object')
+    if option == 'birthdaycalendar':
+        emp_ids =  sock.execute(dbname, uid, pwd, 'hr.employee', 'search',  [])
+        emp_data = sock.execute(dbname, uid, pwd, 'hr.employee', 'read', emp_ids,\
+                    ['id','first_name','last_name','birthday','started_career_vnc_on','write_date'])
+        def ics_datetime(idate):
+            if idate:
+                #returns the datetime as UTC, because it is stored as it in the database
+                idate = idate.split('.', 1)[0]
+                return DT.datetime.strptime(idate,\
+                     '%Y-%m-%d %H:%M:%S').replace(tzinfo=pytz.timezone('UTC'))
+            return False
+        
+        cal = Calendar()
+        cal.add('PRODID', 'Zimbra-Calendar-Provider')
+        cal.add('VERSION', '2.0')
+        cal.add('METHOD', 'PUBLISH')
+        cal.add('RRULE', {'FREQ':'YEARLY', 'BYMONTH': 11, 'BYDAY': '1su'})
+
+        for data in emp_data:                
+            if 'birthday' in data and data['birthday']:
+                event = Event()
+                event.add('CREATED', date.today())
+                event.add('DTSTART', DT.datetime.combine(DT.datetime.strptime(data['birthday'], '%Y-%m-%d'), DT.time.min))
+                event.add('DTEND', DT.datetime.combine(DT.datetime.strptime(data['birthday'], '%Y-%m-%d'), DT.time.min))
+                event.add('X-MICROSOFT-CDO-ALLDAYEVENT', 'TRUE')
+                if 'write_date' in data and data['write_date']:
+                    event.add('DTSTAMP', DT.datetime.strptime(data['write_date'],\
+                                                               '%Y-%m-%d %H:%M:%S'))
+                    event.add('LAST-MODIFIED', \
+                    DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S'))
+#                     if data['show_as']:
+#                         event.add('X-MICROSOFT-CDO-INTENDEDSTATUS', data['show_as'])
+                event.add('UID', uid_generat('crmBirthdayCalendar'+str(data['id'])))
+                event.add('RRULE', {'FREQ':'YEARLY', 'INTERVAL': 1})
+                name = data['first_name'] + " " + data['last_name']+"'s Birthday"
+                event.add('SUMMARY', name)
+#                     if data['description']:
+#                         event.add('DESCRIPTION', data['description'])
+#                     if data['location']:
+#                         event.add('LOCATION', data['location'])                
+                cal.add_component(event)
+                
+            if 'started_career_vnc_on' in data and data['started_career_vnc_on']:
+                event = Event()
+                event.add('CREATED', date.today())
+                event.add('DTSTART', DT.datetime.combine(DT.datetime.strptime(data['started_career_vnc_on'], '%Y-%m-%d'), DT.time.min))
+                event.add('DTEND', DT.datetime.combine(DT.datetime.strptime(data['started_career_vnc_on'], '%Y-%m-%d'), DT.time.max))
+                event.add('X-MICROSOFT-CDO-ALLDAYEVENT', 'TRUE')
+                if 'write_date' in data and data['write_date']:
+                    event.add('DTSTAMP', DT.datetime.strptime(data['write_date'],\
+                                                               '%Y-%m-%d %H:%M:%S'))
+                    event.add('LAST-MODIFIED', \
+                    DT.datetime.strptime(data['write_date'], '%Y-%m-%d %H:%M:%S'))
+#                     if data['show_as']:
+#                         event.add('X-MICROSOFT-CDO-INTENDEDSTATUS', data['show_as'])
+                event.add('UID', uid_generat('crmAnniversaryCalendar'+str(data['id'])))
+                event.add('RRULE', {'FREQ':'YEARLY', 'INTERVAL': 1}) 
+                name = data['first_name'] + " " + data['last_name']+"'s Anniversary at VNC"
+                event.add('SUMMARY', name)
+#                     if data['description']:
+#                         event.add('DESCRIPTION', data['description'])
+#                     if data['location']:
+#                         event.add('LOCATION', data['location'])
+                cal.add_component(event)
+        return cal.to_ical()
+        
     if option == "task":
         task_ids = sock.execute(dbname, uid, pwd, 'crm.task', 'search',\
                              [('task_type', '=', 't'), ('user_id', '=', uid), ('state', '!=', 'cancel')])

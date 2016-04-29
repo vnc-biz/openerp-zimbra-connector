@@ -53,6 +53,9 @@
             <field name="priority">110</field>
             <field name="inherit_id" ref="crm.crm_case_form_view_leads" />
             <field name="arch" type="xml">
+            	<xpath expr="//field[@name='contact_name']" position="replace">
+                    <field name="contact_name" placeholder="First Name" class="oe_inline"/><field name="contact_last_name" placeholder="Last Name" class="oe_inline"/>
+                </xpath>
             	<xpath expr="//field[@name='description']" position="replace">
                     <field name="description" widget="html"/>
                 </xpath>

@@ -5,6 +5,9 @@ import re
 import time
 import hashlib
 from openerp import tools
+import werkzeug
+from urllib import urlencode
+from urlparse import urljoin
 
 
 class crm_meeting(osv.osv):
@@ -52,6 +55,27 @@ class crm_lead(osv.osv):
                 crm_id = crm_lead_pool.create(cr, uid, vals, context=context)
                 return True
         return {'created': False}
+    
+    def get_signup_url_reminder_1(self, cr, uid, id, context=None):
+        rec = self.browse(cr, uid, id, context=context)
+        base_url = self.pool.get('ir.config_parameter').get_param(cr, uid, 'web.base.url')
+        query = {'db': cr.dbname}
+        fragment = {}
+        if rec.type == 'lead':
+             fragment['action'] = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'crm', 'crm_case_category_act_leads_all')[1]
+        elif rec.type == 'opportunity':
+             fragment['action'] = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'crm', 'crm_case_category_act_oppor11')[1]
+        fragment['view_type'] = 'form'
+        fragment['model'] = 'crm.lead'
+        fragment['id'] = rec.id
+        return urljoin(base_url, "?%s#%s" % (urlencode(query), urlencode(fragment)))
+    
+    def search_read(self, cr, uid, domain, fields=[], context={}):
+        ret_val = super(crm_lead, self).search_read(cr, uid, domain, fields=fields, context=context)
+        for rec in ret_val:
+            id = rec.get('id')
+            rec['view_url'] = tools.ustr(self.get_signup_url_reminder_1(cr, uid, id))
+        return ret_val
 
 crm_lead()
 

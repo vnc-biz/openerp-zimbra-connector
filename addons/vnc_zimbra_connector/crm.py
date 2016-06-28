@@ -5,6 +5,8 @@ import re
 import time
 import hashlib
 from openerp import tools
+from urlparse import urljoin
+import werkzeug
 
 
 class crm_meeting(osv.osv):
@@ -52,6 +54,29 @@ class crm_lead(osv.osv):
                 crm_id = crm_lead_pool.create(cr, uid, vals, context=context)
                 return True
         return {'created': False}
+    
+    def get_signup_url_reminder_1(self, cr, uid, id, context=None):
+        rec = self.browse(cr, uid, id, context=context)
+        query = dict(db=cr.dbname)
+        base_url = self.pool.get('ir.config_parameter').get_param(cr, uid, 'web.base.url')
+        route = 'login'
+        fragment = dict()
+        if rec.type == 'lead':
+            fragment['action'] = self.pool.get('ir.model.data').xmlid_to_res_id(cr, uid, 'crm.crm_case_category_act_leads_all')
+        elif rec.type == 'opportunity':
+            fragment['action'] = self.pool.get('ir.model.data').xmlid_to_res_id(cr, uid, 'crm.crm_case_category_act_oppor11')
+        fragment['model'] = self._name
+        fragment['id'] = rec.id
+        fragment['view_type'] = 'form'
+        query['redirect'] = '/web#' + werkzeug.url_encode(fragment)
+        return urljoin(base_url, "/web/%s?%s" % (route, werkzeug.url_encode(query)))
+    
+    def search_read(self, cr, uid, domain=None, fields=None, offset=0, limit=None, order=None, context=None):
+        ret_val = super(crm_lead, self).search_read(cr, uid, domain=domain, fields=fields, offset=offset, limit=limit, order=order, context=context)
+        for rec in ret_val:
+            id = rec.get('id')
+            rec['view_url'] = tools.ustr(self.get_signup_url_reminder_1(cr, uid, id))
+        return ret_val
 
 crm_lead()
 

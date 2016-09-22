@@ -430,8 +430,10 @@ class ZimbraVNCController(http.Controller):
             cal.add('METHOD', 'PUBLISH')
             for data in event_data:
                 name =""
+                lead_link = ""
                 if 'lead_id' in data and data['lead_id']:
                     name = self.get_lead_name(data['lead_id'][0])
+                    lead_link = "Goto Lead / Opportunity : " +request.registry.get('crm.lead').get_signup_url_reminder_1(request.cr, SUPERUSER_ID, data['lead_id'][0]) +"\n\n"
                 event = Event()                
                 if data['allday']:
                     event.add('CREATED', date.today())
@@ -459,8 +461,9 @@ class ZimbraVNCController(http.Controller):
                 event.add('UID', uid_generat('crmCalendar'+str(data['id'])))
                 name = name+', '+data['name'] if name else data['name']
                 event.add('SUMMARY', name)
-                if data['description']:
-                    event.add('DESCRIPTION', data['description'])
+                if data['description'] or lead_link:
+                    desc = data['description'] or ""
+                    event.add('DESCRIPTION', lead_link +desc)
                 if data['location']:
                     event.add('LOCATION', data['location'])
                 cal.add_component(event)

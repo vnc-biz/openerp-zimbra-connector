@@ -53,6 +53,12 @@
             <field name="priority">110</field>
             <field name="inherit_id" ref="crm.crm_case_form_view_leads" />
             <field name="arch" type="xml">
+            	<xpath expr="//div[@class='oe_right oe_button_box']" position="inside">
+            		<newline />
+					<button class="oe_stat_button btn btn-default oe_inline" type="object" name="open_related_tasks" icon="fa-calendar">
+                        <field string="Scheduled Tasks" name="no_of_tasks" widget="statinfo"/>
+                    </button>
+				</xpath>
             	<xpath expr="//field[@name='contact_name']" position="replace">
                     <field name="contact_name" placeholder="First Name" class="oe_inline"/><field name="contact_last_name" placeholder="Last Name" class="oe_inline"/>
                 </xpath>
@@ -124,6 +130,12 @@
             <field name="priority">110</field>
             <field name="inherit_id" ref="crm.crm_case_form_view_oppor" />
             <field name="arch" type="xml">
+            	<xpath expr="//div[@class='oe_right oe_button_box']" position="inside">
+            		<newline />
+					<button class="oe_stat_button btn btn-default oe_inline" type="object" name="open_related_tasks" icon="fa-calendar">
+                        <field string="Scheduled Tasks" name="no_of_tasks" widget="statinfo"/>
+                    </button>
+				</xpath>
                 <xpath expr="//field[@name='description']" position="replace">
                     <field name="description" widget="html"/>
                 </xpath>

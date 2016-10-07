@@ -142,6 +142,26 @@
                 </tree>
             </field>
         </record>
+        
+        <!-- CRM task Tree View New -->
+        <record model="ir.ui.view" id="crm_case_tree_view_meet_new">
+            <field name="name">CRM - tasks Tree New</field>
+            <field name="model">crm.task</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+                <tree string="Tasks" colors="red:stop_datetime and (stop_datetime &lt;= current_datetime and state=='open')">
+                    <field name="categ_id" string="Task Type" />
+                    <field name="name" string="Subject" />
+                    <field name="start_datetime" string="Date" />
+                    <field name="duration" />
+                    <field name="state" />
+                    <field name="user_id" invisible="1" />
+                    <field name="stop_datetime" invisible="1" />
+                    <field name="current_datetime" invisible="1" />
+                </tree>
+            </field>
+        </record>
+        
         <!-- CRM task Calendar -->
         <record model="ir.ui.view" id="crm_case_calendar_view_meet">
             <field name="name">CRM - tasks Calendar</field>

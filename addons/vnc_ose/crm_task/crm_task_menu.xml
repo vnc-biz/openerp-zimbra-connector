@@ -101,5 +101,6 @@
         </record>
         <menuitem name="Notes" id="menu_crm_case_categ_meet_note"
             action="crm_case_categ_meet_note" parent="menu_task_sale" sequence="1" />
+            
     </data>
 </openerp>

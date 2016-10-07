@@ -10,6 +10,12 @@ import pytz
 class crm_lead(osv.osv):
     _inherit="crm.lead"
     
+    def get_no_of_tasks(self, cr, uid, ids, field_names, arg, context=None):
+        res = {}
+        for rec_id in ids:
+            task_count = self.pool.get('crm.task').search(cr, uid, [('opportunity_id','=',rec_id),('task_type','=','t')], count=True, context=context)
+            res[rec_id] = task_count
+        return res
     
     _columns = {
         'contact_last_name':fields.char('Last Name',size=128),
@@ -25,12 +31,31 @@ class crm_lead(osv.osv):
         'title_action': fields.char('Next Activity Summary'),
         'show_action': fields.boolean('Show action', readonly=False),
         'allday': fields.boolean('Allday'),
-        'activity_transition_ids': fields.one2many('crm.activity.transition', 'lead_id', 'Activity Transitions')
+        'activity_transition_ids': fields.one2many('crm.activity.transition', 'lead_id', 'Activity Transitions'),
+        'no_of_tasks': fields.function(get_no_of_tasks, type='integer', string='Tasks'),
     }
     
     _defaults = {
         'allday': True
     }
+    
+    def open_related_tasks(self, cr, uid, ids, context=None):
+        if context is None:
+            context = {}
+        ctx = context.copy()
+        ctx.update({'default_task_type':'t', 'default_opportunity_id' : ids[0]})
+        tree_view_id = self.pool.get('ir.model.data').xmlid_to_res_id(cr, uid, 'vnc_ose.crm_case_tree_view_meet_new')
+        return {
+          'name': _('Tasks'),
+          'view_type': 'form',
+          'view_mode': 'tree,form,calendar,gantt',
+          'res_model': 'crm.task',
+          'type': 'ir.actions.act_window',
+          'context': ctx,
+          'domain' : [('opportunity_id','=',ids[0]),('task_type','=','t')],
+          'views': [(tree_view_id, 'tree'), (False, 'form'), (False, 'calendar'), (False, 'gantt')],
+          'target': 'current'
+        }
 
     def log_activity_transitions(self, cr, uid, ids, vals, context=None):
         transition_id= None

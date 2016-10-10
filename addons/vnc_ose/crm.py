@@ -48,12 +48,12 @@ class crm_lead(osv.osv):
         return {
           'name': _('Tasks'),
           'view_type': 'form',
-          'view_mode': 'tree,form,calendar,gantt',
+          'view_mode': 'tree,calendar,gantt',
           'res_model': 'crm.task',
           'type': 'ir.actions.act_window',
           'context': ctx,
           'domain' : [('opportunity_id','=',ids[0]),('task_type','=','t')],
-          'views': [(tree_view_id, 'tree'), (False, 'form'), (False, 'calendar'), (False, 'gantt')],
+          'views': [(tree_view_id, 'tree'), (False, 'calendar'), (False, 'gantt')],
           'target': 'current'
         }
 

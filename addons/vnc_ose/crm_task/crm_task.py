@@ -287,6 +287,14 @@ class crm_task(osv.osv):
         for self_obj in self.browse(cr, uid, ids, context=context):
             res[self_obj.id] = time.strftime('%Y-%m-%d %H:%M:%S')
         return res
+    
+    def get_task_done(self, cr, uid, ids, field_names, arg, context=None):
+        res = {}
+        for rec in self.browse(cr, uid, ids, context=context):
+            res[rec.id] = False
+            if rec.state == 'done':
+                res[rec.id] = True
+        return res
 
     _columns = {
         # From crm.case
@@ -352,6 +360,7 @@ class crm_task(osv.osv):
                             type='datetime', string='Current DateTime',\
                             readonly=True,help="It represents Current Datetime"),
         'partner_ids': fields.many2many('res.partner', 'calendar_event_res_partner_rel1', string='Attendees', states={'done': [('readonly', True)]}),
+        'task_done': fields.function(get_task_done, type='boolean', string='Done'),
     }
 
     def _check_end_date(self, cr, uid, ids, context=None):
@@ -368,6 +377,14 @@ class crm_task(osv.osv):
                          "Task Start Date".',\
                          ['stop_datetime']),
     ]
+    
+    def onchange_end_dates(self, cr, uid, ids, stop_datetime, context=None):
+        if context is None:
+            context = {}
+        value = {'duration' : 0, 'start_datetime' : ''}
+        if stop_datetime:
+            value = {'duration' : 1, 'start_datetime' : (datetime.strptime(stop_datetime, '%Y-%m-%d %H:%M:%S') - timedelta(hours=1)).strftime('%Y-%m-%d %H:%M:%S')}
+        return {'value': value}
 
     def onchange_dates(self, cr, uid, ids, start_date, duration=False, \
                        end_date=False, allday=False, context=None):

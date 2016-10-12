@@ -288,14 +288,6 @@ class crm_task(osv.osv):
             res[self_obj.id] = time.strftime('%Y-%m-%d %H:%M:%S')
         return res
     
-    def get_task_done(self, cr, uid, ids, field_names, arg, context=None):
-        res = {}
-        for rec in self.browse(cr, uid, ids, context=context):
-            res[rec.id] = False
-            if rec.state == 'done':
-                res[rec.id] = True
-        return res
-
     _columns = {
         # From crm.case
         'crm_id':fields.char('CRM ID',size=256),
@@ -359,8 +351,7 @@ class crm_task(osv.osv):
         'current_datetime':fields.function(_get_current_datetime, method=True,\
                             type='datetime', string='Current DateTime',\
                             readonly=True,help="It represents Current Datetime"),
-        'partner_ids': fields.many2many('res.partner', 'calendar_event_res_partner_rel1', string='Attendees', states={'done': [('readonly', True)]}),
-        'task_done': fields.function(get_task_done, type='boolean', string='Done'),
+        'partner_ids': fields.many2many('res.partner', 'calendar_event_res_partner_rel1', string='Attendees', states={'done': [('readonly', True)]})
     }
 
     def _check_end_date(self, cr, uid, ids, context=None):

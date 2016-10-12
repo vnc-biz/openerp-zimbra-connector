@@ -153,7 +153,6 @@
                     <field name="categ_id" string="Task Type" widget="selection"/>
                     <field name="name" string="Name" />
                     <field name="stop_datetime" string="Due Date" required="1" on_change="onchange_end_dates(stop_datetime)" />
-                    <field name="task_done" />
                     <button name="case_open" string="Confirm" states="draft" type="object" icon="gtk-go-forward" />
                     <button name="case_close" string="Done" states="open" type="object" icon="terp-check" />
                     <field name="start_datetime" string="Start Date" required="1" invisible="1" />

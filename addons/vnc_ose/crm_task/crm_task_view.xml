@@ -149,7 +149,7 @@
             <field name="model">crm.task</field>
             <field name="type">tree</field>
             <field name="arch" type="xml">
-                <tree string="Tasks" colors="red:stop_datetime and (stop_datetime &lt;= current_datetime and state=='open')" editable="bottom">
+                <tree string="Tasks" colors="red:stop_datetime and (stop_datetime &lt;= current_datetime and state=='open')">
                     <field name="categ_id" string="Task Type" widget="selection"/>
                     <field name="name" string="Name" />
                     <field name="stop_datetime" string="Due Date" required="1" on_change="onchange_end_dates(stop_datetime)" />

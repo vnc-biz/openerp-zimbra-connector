@@ -44,16 +44,16 @@ class crm_lead(osv.osv):
             context = {}
         ctx = context.copy()
         ctx.update({'default_task_type':'t', 'default_opportunity_id' : ids[0]})
-        tree_view_id = self.pool.get('ir.model.data').xmlid_to_res_id(cr, uid, 'vnc_ose.crm_case_tree_view_meet_new')
+        tree_view_id = self.pool.get('ir.model.data').xmlid_to_res_id(cr, uid, 'vnc_ose.crm_case_tree_view_meet')
         return {
           'name': _('Tasks'),
           'view_type': 'form',
-          'view_mode': 'tree,calendar,gantt',
+          'view_mode': 'tree,form,calendar,gantt',
           'res_model': 'crm.task',
           'type': 'ir.actions.act_window',
           'context': ctx,
           'domain' : [('opportunity_id','=',ids[0]),('task_type','=','t')],
-          'views': [(tree_view_id, 'tree'), (False, 'calendar'), (False, 'gantt')],
+          'views': [(tree_view_id, 'tree'), (False, 'form'), (False, 'calendar'), (False, 'gantt')],
           'target': 'current'
         }
 

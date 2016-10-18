@@ -164,8 +164,8 @@
 	        <field name="view_mode">calendar,tree,form</field>
 	    </record>
 	
-	    <menuitem id="crm_activity_transition_menu" action="crm_activity_transition_action" sequence="7"
-	        name="Activity Transition" parent="base.menu_sales"/>
+<!-- 	    <menuitem id="crm_activity_transition_menu" action="crm_activity_transition_action" sequence="7" -->
+<!-- 	        name="Activity Transition" parent="base.menu_sales"/> -->
 	        
 	    
 	</data>

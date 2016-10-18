@@ -102,5 +102,49 @@
         <menuitem name="Notes" id="menu_crm_case_categ_meet_note"
             action="crm_case_categ_meet_note" parent="menu_task_sale" sequence="1" />
             
+            
+<!--         MY ACTIVITIES -->
+		<record model="ir.actions.act_window" id="crm_case_categ_meet_my_activity">
+            <field name="name">Tasks</field>
+            <field name="res_model">crm.task</field>
+            <field name="view_mode">tree,form,gantt,calendar</field>
+            <field name="view_id" ref="crm_case_calendar_view_meet" />
+            <field name="context">{'virtual_id':False,"search_default_user_assign_delegated":1, 'default_task_type':'t'}
+            </field>
+            <field name="domain">[('task_type','=','t')]</field>
+            <field name="search_view_id" ref="view_crm_case_tasks_filter" />
+            <field name="help">The task calendar is shared between the sales teams
+                and fully integrated with other applications such as the employee
+                holidays or the business opportunities. You can also synchronize
+                tasks with your mobile phone using the caldav interface.
+            </field>
+        </record>
+        <record model="ir.actions.act_window.view" id="action_crm_tag_calendar_meet_my_activity">
+            <field name="sequence" eval="3" />
+            <field name="view_mode">calendar</field>
+            <field name="view_id" ref="crm_case_calendar_view_meet" />
+            <field name="act_window_id" ref="crm_case_categ_meet_my_activity" />
+        </record>
+        <record model="ir.actions.act_window.view" id="action_crm_tag_tree_meet_my_activity">
+            <field name="sequence" eval="1" />
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="crm_case_tree_view_meet" />
+            <field name="act_window_id" ref="crm_case_categ_meet_my_activity" />
+        </record>
+        <record model="ir.actions.act_window.view" id="action_crm_tag_form__meet">
+            <field name="sequence" eval="2" />
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="crm_case_form_view_meet" />
+            <field name="act_window_id" ref="crm_case_categ_meet_my_activity" />
+        </record>
+        <record model="ir.actions.act_window.view" id="action_crm_tag_gantt_meet_my_activity">
+            <field name="sequence" eval="4" />
+            <field name="view_mode">gantt</field>
+            <field name="view_id" ref="crm_case_gantt_view_meet" />
+            <field name="act_window_id" ref="crm_case_categ_meet_my_activity" />
+        </record>
+        <menuitem name="My Activities" id="menu_crm_case_categ_meet_my_activity" action="crm_case_categ_meet_my_activity"
+            parent="base.menu_sales" sequence="7" />
+            
     </data>
 </openerp>

@@ -33,6 +33,7 @@ class crm_lead(osv.osv):
         'allday': fields.boolean('Allday'),
         'activity_transition_ids': fields.one2many('crm.activity.transition', 'lead_id', 'Activity Transitions'),
         'no_of_tasks': fields.function(get_no_of_tasks, type='integer', string='Tasks'),
+        'crm_task_ids' : fields.one2many('crm.task', 'opportunity_id', 'Task(s)', domain=[('task_type','=','t')])
     }
     
     _defaults = {

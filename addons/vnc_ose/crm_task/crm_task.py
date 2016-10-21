@@ -176,6 +176,17 @@ class crm_task(osv.osv):
                     event_val.update({'start_datetime' : vals.get('start_datetime', False)})
                 if vals.get('stop_datetime', False):
                     event_val.update({'stop_datetime' : vals.get('stop_datetime', False)})
+                if vals.get('user_id', False) and rec.user_id:
+                    event_val.update({'user_id' : rec.user_id.id, 'partner_ids' : [(6, 0, [rec.user_id.partner_id.id])]})
+                if vals.get('partner_id', False) or vals.get('opportunity_id', False):
+                    description = ""
+                    if rec.opportunity_id:
+                        description += "Lead / Opportunity : " +rec.opportunity_id.name +"\n\n"
+                    if rec.partner_id:
+                        partner_name = rec.partner_id.parent_id and rec.partner_id.parent_id.name or rec.partner_id.name
+                        description += "Partner Name : " +partner_name +"\n\n"
+                        description += "Contact Name : " +rec.partner_id.name +"\n\n"
+                    event_val.update({'description' : description})
                 self.pool.get('calendar.event').write(cr, uid, [rec.meeting_id.id], event_val, context=context)
         return ret_val
 
@@ -197,6 +208,16 @@ class crm_task(osv.osv):
             if vals.get('user_id', False):
                 user_rec = self.pool.get('res.users').browse(cr, uid, vals.get('user_id', False), context=context)
                 event_val.update({'user_id' : user_rec.id, 'partner_ids' : [(6, 0, [user_rec.partner_id.id])]})
+            description = ""
+            if vals.get('opportunity_id', False):
+                opportunity_rec = self.pool.get('crm.lead').browse(cr, uid, vals.get('opportunity_id', False), context=context)
+                description += "Lead / Opportunity : " +opportunity_rec.name +"\n\n"
+            if vals.get('partner_id', False):
+                partner_rec = self.pool.get('res.partner').browse(cr, uid, vals.get('partner_id', False), context=context)
+                partner_name = partner_rec.parent_id and partner_rec.parent_id.name or partner_rec.name
+                description += "Partner Name: " +partner_name +"\n\n"
+                description += "Contact Name : " +partner_rec.name +"\n\n"
+            event_val.update({'description' : description})
             meet_id = self.pool.get('calendar.event').create(cr, uid, event_val, context=context)
             vals.update({'meeting_id' : meet_id})
         res = super(crm_task, self).create(cr, uid, vals, context=context)

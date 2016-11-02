@@ -119,7 +119,7 @@ class crm_task(osv.osv):
     """ CRM task Cases """
     _name = 'crm.task'
     _description = "Task"
-    _order = "display_start asc"
+    _order = "priority desc"
     _inherit = "calendar.event"
     _check_fields = ['user_id']
 
@@ -344,10 +344,11 @@ class crm_task(osv.osv):
         'date_closed': fields.datetime('Closed'),
         'stop_datetime': fields.datetime('End Datetime', states={'done': [('readonly', True)]}, \
                                          track_visibility='onchange'),
-        'priority': fields.selection([
-                                      ('high','High'),
-                                      ('medium','Medium'),
-                                      ('low','Low') ], 'Priority'),
+        'priority': fields.selection([('0','Very Low'),
+                                      ('1','Low'),
+                                      ('2','Medium'),
+                                      ('3','High'),
+                                      ('4','Very High')], 'Priority'),
         'message_ids': fields.one2many('mail.message', 'res_id', 'Messages',\
                                         domain=[('model','=',_name)]),
         'history_crm_fields_ids': fields.one2many('crm.field.history', \
@@ -374,7 +375,7 @@ class crm_task(osv.osv):
                             readonly=True,help="It represents Current Datetime"),
         'partner_ids': fields.many2many('res.partner', 'calendar_event_res_partner_rel1', string='Attendees', states={'done': [('readonly', True)]})
     }
-
+    
     def _check_end_date(self, cr, uid, ids, context=None):
         ''' Validating the Task End Date: Task End Date should be greater than Start Date '''
         for task_obj in self.browse(cr, uid, ids, context=context):
@@ -457,6 +458,7 @@ class crm_task(osv.osv):
         'company_id': lambda s, cr, uid, c: s.pool.get('res.company').\
                             _company_default_get(cr, uid, s._name, context=c),
         'description': " ",
+        'priority' : '0'
     }
 
     def log(self, cr, uid, id, message, secondary=False, context=None):

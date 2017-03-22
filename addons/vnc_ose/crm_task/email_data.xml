@@ -18,12 +18,12 @@
 				Hello ! ${object.user_id.name} , ${ctx.get('user_name') or ''}<br/>
 				Task ${object.name} has been closed.<br/>
 				<br/>
-				<% set signup_url = object.get_signup_url() %>
+				<% set signup_url = object.get_signup_url_reminder_task() %>
 			    % if signup_url:
 			        You can access the Task:<a style="display:block; width: 150px; height:20px; margin-left: 5px; color: #DDD; font-family: 'Lucida Grande',
 			        	Helvetica, Arial, sans-serif; font-size: 13px; font-weight: bold; text-align: center; text-decoration: none !important; line-height: 1; 
 			        	padding: 5px 0px 0px 0px; background-color: #8E0000; border-radius: 5px 5px; background-repeat: repeat no-repeat;"
-			           href="${signup_url}">View Task</a>
+			           href="${ctx['login_url']}">View Task</a>
 			    % endif
 			    <br/>
 				<br/>

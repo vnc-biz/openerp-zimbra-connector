@@ -9,6 +9,8 @@ from openerp.addons.crm import crm
 from datetime import datetime, timedelta, date
 import time
 import logging
+import werkzeug
+from urlparse import urljoin
 
 _logger = logging.getLogger(__name__)
 
@@ -146,6 +148,19 @@ class crm_task(osv.osv):
                                 'field_name':field_check,
                     })
         return result
+    
+    def get_signup_url_reminder_task(self, cr, uid, id, context=None):
+        rec = self.browse(cr, uid, id, context=context)
+        query = dict(db=cr.dbname)
+        base_url = self.pool.get('ir.config_parameter').get_param(cr, uid, 'web.base.url')
+        route = 'login'
+        fragment = dict()
+        fragment['action'] = self.pool.get('ir.model.data').xmlid_to_res_id(cr, uid, 'vnc_ose.crm_case_categ_meet')
+        fragment['model'] = self._name
+        fragment['id'] = rec.id
+        fragment['view_type'] = 'form'
+        query['redirect'] = '/web#' + werkzeug.url_encode(fragment)
+        return "/web/%s?%s" % (route, werkzeug.url_encode(query))
 
     def write(self, cr, uid, ids, vals, context={}):
         if not isinstance(ids, (list,tuple)):
@@ -543,7 +558,7 @@ class crm_task(osv.osv):
         template = template_obj.browse(cr, uid, template_id[1])
         if task.user_delegated_id and task.user_delegated_id.id!= task.user_id.id:
             context.update({'user_email': task.user_delegated_id.email, 'user_name': task.user_delegated_id.name})
-
+        context['login_url'] = self.get_signup_url_reminder_task(cr, uid, task.id, context=context)
         action = self.pool.get('email.template').send_mail(cr, uid, \
                                    template_id[1], ids[0], context=context)
         

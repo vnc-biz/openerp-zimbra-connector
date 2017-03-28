@@ -621,7 +621,7 @@ class crm_task(osv.osv):
         assert len(ids) == 1
         task = self.browse(cr, uid, ids[0], context=context)
         partner_id = task.user_id.partner_id.id
-        contex_signup = dict(context, signup_valid=True)
+        contex_signup = dict(context)
         partner_obj = self.pool.get('res.partner')
         return partner_obj._get_signup_url_for_action(cr, uid, [partner_id],
                                                                 action='mail.action_mail_redirect',

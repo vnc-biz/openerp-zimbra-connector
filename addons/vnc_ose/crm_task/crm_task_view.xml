@@ -98,6 +98,40 @@
                                     </group>
                                 </group>
                                 <group>
+                                	<separator string="Related Attachment(s)" />
+                                    <newline />
+                                    <field name="related_attachment_ids" widget="many2many_kanban" nolabel="1" colspan="4">
+                                    	<kanban>
+						                    <field name="file_type_icon"/>
+						                    <field name="url"/>
+						                    <field name="name"/>
+						                    <field name="download_url"/>
+						                    <templates>
+						                        <t t-name="kanban-box">
+						                            <div>
+						                                <div class="oe_kanban_vignette">
+						                                    <div class="oe_attachment">
+						                                        <div t-if="record.file_type_icon.value != 'webimage'">
+						                                            <a t-att-href="record.download_url.value"><img t-att-src="'/mail/static/src/img/mimetypes/' + record.file_type_icon.value + '.png'"></img></a>
+						                                        </div>
+						                                        <div t-if="record.file_type_icon.value == 'webimage' and !record.url.value">
+						                                            <a t-att-href="record.download_url.value"><img t-att-src="kanban_image('ir.attachment', 'datas', record.id.value)"/></a>
+						                                        </div>
+						                                        <div t-if="record.file_type_icon.value and record.url.value">
+						                                            <a t-att-href="record.download_url.value"><img t-att-src="record.url.value" /></a>
+						                                        </div>
+						                                        <div class="oe_name">
+						                                            <field name="name"/>
+						                                        </div>
+						                                    </div>
+						                                </div>
+						                            </div>
+						                        </t>
+						                    </templates>
+						                </kanban>
+                                    </field>
+                                </group>
+                                <group>
                                     <separator string="Description" />
                                     <newline />
                                     <field name="description" nolabel="1" colspan="4" />

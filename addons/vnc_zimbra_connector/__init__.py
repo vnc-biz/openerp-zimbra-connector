@@ -5,4 +5,5 @@ import mail_message
 import tests
 import hr
 import controllers
+import base
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

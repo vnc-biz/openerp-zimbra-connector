@@ -328,9 +328,7 @@ class crm_task(osv.osv):
         res = {}
         for rec in self.browse(cr, uid, ids, context=context):
             attachment_ids = []
-            if rec.opportunity_id:
-                attachment_ids += self.pool.get('ir.attachment').search(cr, uid, [('res_model','=','crm.lead'),('res_id','=',rec.opportunity_id.id)], context=context)
-            attachment_ids += self.pool.get('ir.attachment').search(cr, uid, [('res_model','=','crm.task'),('res_id','=',rec.id)], context=context)
+            attachment_ids = self.pool.get('ir.attachment').search(cr, uid, [('res_model','=','crm.task'),('res_id','=',rec.id)], context=context)
             res[rec.id] = attachment_ids
         return res
     

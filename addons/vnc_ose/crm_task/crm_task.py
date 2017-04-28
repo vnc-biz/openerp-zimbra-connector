@@ -220,9 +220,11 @@ class crm_task(osv.osv):
                 event_name += categ_rec.name +' : '
             event_name += vals.get('name', False)
             event_val = {'name' : event_name, 'start_datetime' : vals.get('start_datetime', ''), 'stop_datetime' : vals.get('stop_datetime', '')}
+            vals.update({'partner_ids' : [(6, 0, [])]})
             if vals.get('user_id', False):
                 user_rec = self.pool.get('res.users').browse(cr, uid, vals.get('user_id', False), context=context)
                 event_val.update({'user_id' : user_rec.id, 'partner_ids' : [(6, 0, [user_rec.partner_id.id])]})
+                vals.update({'partner_ids' : [(6, 0, [user_rec.partner_id.id])]})
             description = ""
             if vals.get('opportunity_id', False):
                 opportunity_rec = self.pool.get('crm.lead').browse(cr, uid, vals.get('opportunity_id', False), context=context)

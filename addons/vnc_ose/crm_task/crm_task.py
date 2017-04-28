@@ -326,14 +326,6 @@ class crm_task(osv.osv):
             res[self_obj.id] = time.strftime('%Y-%m-%d %H:%M:%S')
         return res
     
-    def get_related_attachments(self, cr, uid, ids, name, arg, context=None):
-        res = {}
-        for rec in self.browse(cr, uid, ids, context=context):
-            attachment_ids = []
-            attachment_ids = self.pool.get('ir.attachment').search(cr, uid, [('res_model','=','crm.task'),('res_id','=',rec.id)], context=context)
-            res[rec.id] = attachment_ids
-        return res
-    
     _columns = {
         # From crm.case
         'crm_id':fields.char('CRM ID',size=256),
@@ -398,8 +390,7 @@ class crm_task(osv.osv):
         'current_datetime':fields.function(_get_current_datetime, method=True,\
                             type='datetime', string='Current DateTime',\
                             readonly=True,help="It represents Current Datetime"),
-        'partner_ids': fields.many2many('res.partner', 'calendar_event_res_partner_rel1', string='Attendees', states={'done': [('readonly', True)]}),
-        'related_attachment_ids' : fields.function(get_related_attachments, relation="ir.attachment", type="many2many", string="Attachments")
+        'partner_ids': fields.many2many('res.partner', 'calendar_event_res_partner_rel1', string='Attendees', states={'done': [('readonly', True)]})
     }
     
     def _check_end_date(self, cr, uid, ids, context=None):
@@ -632,38 +623,47 @@ class crm_task(osv.osv):
         assert len(ids) == 1
         task = self.browse(cr, uid, ids[0], context=context)
         partner_id = task.user_id.partner_id.id
-        contex_signup = dict(context)
+        contex_signup = dict(context, signup_valid=True)
         partner_obj = self.pool.get('res.partner')
         return partner_obj._get_signup_url_for_action(cr, uid, [partner_id],
                                                                 action='mail.action_mail_redirect',
                                                                 model=self._name, res_id=task.id,
                                                                 context=contex_signup)[partner_id]
+                                                                
+    def get_url(self, cr, uid, ids, context=None):
+        model_data = self.pool.get('ir.model.data')
+        action = model_data.get_object_reference(cr, uid, 'vnc_ose', 'crm_case_categ_meet')[1]
+        menu = model_data.get_object_reference(cr, uid, 'vnc_ose', 'menu_crm_case_categ_meet')[1]
+        
+        user_url = self._get_url_for_action(cr, uid, ids, action, 'form', menu , ids, 'crm.task')
+        return {
+            'type': 'ir.actions.act_url',
+            'url': str(user_url),
+            'res_id': ids[0],
+        }
+        
+    import werkzeug
+    def _get_url_for_action(self, cr, uid, ids, action, view_type, menu_id, res_id, model, context=None):
+        base_url = self.pool.get('ir.config_parameter').get_param(cr, uid, 'web.base.url', context=context)
+        route = 'login'
+        query = dict(db=cr.dbname)
+        fragment = dict()
+        base = '/web#'
+        if action:
+            fragment['action'] = action
+        if view_type:
+            fragment['view_type'] = view_type
+        if menu_id:
+            fragment['menu_id'] = menu_id
+        if model:
+            fragment['model'] = model
+        if res_id:
+            fragment['id'] = res_id
+        query['redirect'] = base + werkzeug.url_encode(fragment)
+        url = urljoin(base_url, '/web/%s?%s' % (route, werkzeug.url_encode(query)))
+        return url
 
 crm_task()
-
-class ir_attachment(osv.osv):
-    
-    _inherit = 'ir.attachment'
-    
-    def get_download_url(self, cr, uid, ids, name, arg, context=None):
-        res = {}
-        for rec in self.browse(cr, uid, ids, context=context):
-            res[rec.id] = '/web/binary/saveas?model=ir.attachment&field=datas&filename_field=name&id=%s' %(str(rec.id),)
-        return res
-    
-    _columns = {
-        'download_url' : fields.function(get_download_url, type="char", string="Download URL")
-    }
-    
-    def create(self, cr, uid, vals, context=None):
-        ret_val = super(ir_attachment, self).create(cr, uid, vals, context=context)
-        if vals.get('res_model', '') == 'crm.lead' and vals.get('res_id', False):
-            user_rec = self.pool.get('res.users').browse(cr, uid, uid, context=context)
-            msg_id = self.pool.get('crm.lead').message_post(cr, uid, vals.get('res_id', False), body='New Attachment added.', context=context)
-            self.pool.get('mail.message').write(cr, uid, msg_id, {'attachment_ids' : [(4, ret_val)]}, context=context)
-        return ret_val
-    
-ir_attachment()
 
 
 class crm_case_stage(osv.osv):

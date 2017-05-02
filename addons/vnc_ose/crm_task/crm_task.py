@@ -326,6 +326,14 @@ class crm_task(osv.osv):
             res[self_obj.id] = time.strftime('%Y-%m-%d %H:%M:%S')
         return res
     
+    def get_related_attachments(self, cr, uid, ids, name, arg, context=None):
+        res = {}
+        for rec in self.browse(cr, uid, ids, context=context):
+            attachment_ids = []
+            attachment_ids = self.pool.get('ir.attachment').search(cr, uid, [('res_model','=','crm.task'),('res_id','=',rec.id)], context=context)
+            res[rec.id] = attachment_ids
+        return res
+    
     _columns = {
         # From crm.case
         'crm_id':fields.char('CRM ID',size=256),
@@ -390,6 +398,8 @@ class crm_task(osv.osv):
         'current_datetime':fields.function(_get_current_datetime, method=True,\
                             type='datetime', string='Current DateTime',\
                             readonly=True,help="It represents Current Datetime"),
+        'partner_ids': fields.many2many('res.partner', 'calendar_event_res_partner_rel1', string='Attendees', states={'done': [('readonly', True)]}),
+        'related_attachment_ids' : fields.function(get_related_attachments, relation="ir.attachment", type="many2many", string="Attachments"),
         'partner_ids': fields.many2many('res.partner', 'calendar_event_res_partner_rel1', string='Attendees', states={'done': [('readonly', True)]})
     }
     
@@ -665,6 +675,29 @@ class crm_task(osv.osv):
 
 crm_task()
 
+class ir_attachment(osv.osv):
+    
+    _inherit = 'ir.attachment'
+    
+    def get_download_url(self, cr, uid, ids, name, arg, context=None):
+        res = {}
+        for rec in self.browse(cr, uid, ids, context=context):
+            res[rec.id] = '/web/binary/saveas?model=ir.attachment&field=datas&filename_field=name&id=%s' %(str(rec.id),)
+        return res
+    
+    _columns = {
+        'download_url' : fields.function(get_download_url, type="char", string="Download URL")
+    }
+    
+    def create(self, cr, uid, vals, context=None):
+        ret_val = super(ir_attachment, self).create(cr, uid, vals, context=context)
+        if vals.get('res_model', '') == 'crm.lead' and vals.get('res_id', False):
+            user_rec = self.pool.get('res.users').browse(cr, uid, uid, context=context)
+            msg_id = self.pool.get('crm.lead').message_post(cr, uid, vals.get('res_id', False), body='New Attachment added.', context=context)
+            self.pool.get('mail.message').write(cr, uid, msg_id, {'attachment_ids' : [(4, ret_val)]}, context=context)
+        return ret_val
+    
+ir_attachment()
 
 class crm_case_stage(osv.osv):
     _inherit = "crm.case.stage"

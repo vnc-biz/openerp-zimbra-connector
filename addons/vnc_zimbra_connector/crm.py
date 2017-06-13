@@ -13,6 +13,23 @@ class crm_meeting(osv.osv):
     """ CRM Meeting Cases """
     _order = "start_datetime asc"
     _inherit = 'calendar.event'
+    
+    def do_create(self, cr, uid, vals, context=None):
+        if vals.get('data', False):
+            data = eval(vals.pop('data'))
+            for data_key in data.keys():
+                vals.update({'partner_ids' : [], 'opportunity_id' : False})
+                if data_key == 'res.partner':
+                    for partner in data.get('res.partner', []):
+                        vals.update({'partner_ids' : [(4, partner)]})
+                        self.create(cr, uid, vals, context=context)
+                elif data_key == 'crm.lead':
+                    for lead in data.get('crm.lead', []):
+                        vals.update({'opportunity_id' : lead})
+                        self.create(cr, uid, vals, context=context)
+                elif data.get(data_key, []):
+                    self.create(cr, uid, vals, context=context)
+        return True
 
     def _tz_get(self, cr, uid, context=None):
         """

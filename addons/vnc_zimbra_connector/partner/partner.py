@@ -975,8 +975,25 @@ zimbra_contactsync_log()
 class crm_phonecall(osv.osv):
     _inherit='crm.phonecall'
     _columns={
-              'priority': fields.selection([('1', 'Highest'),('2', 'High'),('3', 'Normal'),('4', 'Low'),('5', 'Lowest')], 'Priority'),
-              }
+        'priority': fields.selection([('1', 'Highest'),('2', 'High'),('3', 'Normal'),('4', 'Low'),('5', 'Lowest')], 'Priority'),
+    }
+    
+    def do_create(self, cr, uid, vals, context=None):
+        if vals.get('data', False):
+            data = eval(vals.pop('data'))
+            for data_key in data.keys():
+                vals.update({'partner_id' : False, 'opportunity_id' : False})
+                if data_key == 'res.partner':
+                    for partner in data.get('res.partner', []):
+                        vals.update({'partner_id' : partner})
+                        self.create(cr, uid, vals, context=context)
+                elif data_key == 'crm.lead':
+                    for lead in data.get('crm.lead', []):
+                        vals.update({'opportunity_id' : lead})
+                        self.create(cr, uid, vals, context=context)
+                elif data.get(data_key, []):
+                    self.create(cr, uid, vals, context=context)
+        return True
     
 class calendar_event(osv.Model):
     _inherit='calendar.event'

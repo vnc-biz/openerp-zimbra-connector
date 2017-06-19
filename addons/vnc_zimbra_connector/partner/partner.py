@@ -767,7 +767,13 @@ class res_partner(osv.osv):
               'last_name':fields.char('Last Name',size=128),
               'zcontact_id': fields.char('Zimbra Contact ID', size=128),
               }
-
+    
+    def default_get(self, cr, uid, fields, context=None):
+        res = super(res_partner, self).default_get(cr, uid, fields, context=context)
+        if res.get('name'):
+            res.update({'first_name': res.get('name')})
+        return res
+    
     def partner_sync_multi(self, cr, uid, zlistofdict=[], context={}):
         # for update/create zimbra contact in odoo
         created = updated = 0

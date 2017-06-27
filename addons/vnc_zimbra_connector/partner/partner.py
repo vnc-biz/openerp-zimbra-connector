@@ -297,42 +297,43 @@ class zimbra_partner(osv.osv_memory):
         obj_list= ['crm.lead','project.issue','hr.applicant','res.partner',\
                    'project.project']
         for ref_id in ref_ids:
-            for model in eval(ref_id).keys():
-                for res_id in eval(ref_id).get(model, []):
-                    msg_new = dictcreate.get('message')
-                    if message_id:
-                        msg_ids = msg_pool.search(cr, uid, [('message_id','=',\
-                                message_id),('res_id','=',res_id),('model','=',model)])
-                        if msg_ids and len(msg_ids):
-                            continue
-                    if model not in obj_list:
-                        res={}
-                        obj_attch = self.pool.get('ir.attachment')
-                        ls = ['*', '/', '\\', '<', '>', ':', '?',\
-                               '"', '|', '\t', '\n',':','~']
-                        sub = msg.get('subject','NO-SUBJECT').replace(' ','')
-                        if sub.strip() == '':
-                           sub = 'NO SBUJECT'
-                        fn = sub
-                        for c in ls:
-                           fn = fn.replace(c,'')
-                        if len(fn) > 64:
-                           l = 64 - len(fn)
-                           f = fn.split('-')
-                           fn = '-'.join(f[1:])
-                           if len(fn) > 64:
-                              l = 64 - len(fn)
-                              f = fn.split('.')
-                              fn = f[0][0:l] + '.' + f[-1]
-                        fn = fn[:-4]+'.eml'
-                        res['res_model'] = model
-                        res['name'] = msg.get('subject','NO-SUBJECT')+".eml"
-                        res['datas_fname'] = fn
-                        res['datas'] = base64.b64encode(mail.encode('utf-8'))
-                        res['res_id'] = res_id
-                        obj_attch.create(cr, uid, res)
-                    server_tools_pool.history_message(cr, uid, model, res_id, msg_new)
-                    res_ids.append(res_id)
+            msg_new = dictcreate.get('message')
+            ref = ref_id.split(',')
+            model = ref[0]
+            res_id = int(ref[1])
+            if message_id:
+                msg_ids = msg_pool.search(cr, uid, [('message_id','=',\
+                        message_id),('res_id','=',res_id),('model','=',model)])
+                if msg_ids and len(msg_ids):
+                    continue
+            if model not in obj_list:
+                res={}
+                obj_attch = self.pool.get('ir.attachment')
+                ls = ['*', '/', '\\', '<', '>', ':', '?',\
+                       '"', '|', '\t', '\n',':','~']
+                sub = msg.get('subject','NO-SUBJECT').replace(' ','')
+                if sub.strip() == '':
+                   sub = 'NO SBUJECT'
+                fn = sub
+                for c in ls:
+                   fn = fn.replace(c,'')
+                if len(fn) > 64:
+                   l = 64 - len(fn)
+                   f = fn.split('-')
+                   fn = '-'.join(f[1:])
+                   if len(fn) > 64:
+                      l = 64 - len(fn)
+                      f = fn.split('.')
+                      fn = f[0][0:l] + '.' + f[-1]
+                fn = fn[:-4]+'.eml'
+                res['res_model'] = model
+                res['name'] = msg.get('subject','NO-SUBJECT')+".eml"
+                res['datas_fname'] = fn
+                res['datas'] = base64.b64encode(mail.encode('utf-8'))
+                res['res_id'] = res_id
+                obj_attch.create(cr, uid, res)
+            server_tools_pool.history_message(cr, uid, model, res_id, msg_new)
+            res_ids.append(res_id)
         return len(res_ids)
 
     def process_email(self, cr, uid, vals):
